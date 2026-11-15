@@ -1,0 +1,113 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.btn-primario {
+    background-color: #A3D8C5;
+    color: #333;
+    border: none;
+    border-radius: 20px;
+    transition: background-color 0.3s ease;
+}
+.btn-primario:hover {
+    background-color: #8bc2ae;
+    color: #000;
+}
+
+
+.banner-hero {
+    max-height: 300px;
+    object-fit: cover;
+}
+
+.titulo-galeria {
+    color: #333;
+    font-size: 2.5rem;
+}
+
+.card-categoria {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    background: transparent;
+}
+.card-categoria:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-categoria-img {
+    background-color: #A3D8C5;
+    height: 200px;
+    border-radius: 15px 15px 0 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+.card-categoria-img img {
+    max-height: 150px;
+    object-fit: contain;
+}
+
+.card-categoria-body {
+    border: 2px solid #A3D8C5;
+    border-top: none;
+    border-radius: 0 0 15px 15px;
+}
+
+.banner-amarillo {
+    background-color: #F2B134;
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+.banner-icono {
+    max-height: 120px;
+}
+.descuento-numero {
+    color: #D4005B;
+    font-size: 4rem;
+    line-height: 1;
+}
+
+.card-producto {
+    border: 3px solid #A3D8C5;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card-producto:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card-producto .card-categoria-img {
+    background-color: #A3D8C5;
+    height: 200px;
+    border-radius: 15px 15px 0 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+.card-producto .card-categoria-img img {
+    max-height: 150px;
+    object-fit: contain;
+}
+.breadcrumb a { color: #D4005B; text-decoration: none; }
+.breadcrumb a:hover { text-decoration: underline; }
+
+.upload-area {
+    background-color: #f8f9fa;
+    transition: background-color 0.3s ease;
+}
+.upload-area:hover {
+    background-color: #e9ecef;
+}
+
+.banner-categoria-img {
+  height: 300px;        /* Altura fija para todas las pantallas */
+  object-fit: cover;    /* Recorta la imagen mágicamente para que llene el espacio sin deformarse */
+  object-position: center; /* Centra el enfoque del recorte */
+}
