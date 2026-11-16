@@ -1,20 +1,63 @@
 <?php
+include_once __DIR__ . '/../../conexion.php';
+
 $mensaje_exito = false;
+$errores = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nombre = $_POST['nombre'] ?? '';
-    $telefono = $_POST['telefono'] ?? '';
-    $personaje = $_POST['personaje'] ?? '';
-    $texto_personalizado = $_POST['texto-personalizado'] ?? '';
-    $tamano = $_POST['tamano'] ?? '';
+    $nombre    = trim($_POST['nombre'] ?? '');
+    $telefono  = trim($_POST['telefono'] ?? '');
+    $personaje = trim($_POST['personaje'] ?? '');
+    $texto     = trim($_POST['texto-personalizado'] ?? '');
+    $tamano    = $_POST['tamano'] ?? null;
     $aperturas = $_POST['apertura'] ?? [];
 
-    $nombre_imagen = '';
+    if ($nombre === '')   $errores[] = 'El nombre es obligatorio.';
+    if ($telefono === '') $errores[] = 'El teléfono es obligatorio.';
+    if ($personaje === '') $errores[] = 'Describe el personaje.';
+
+    $nombre_imagen = null;
     if (isset($_FILES['referencia']) && $_FILES['referencia']['error'] === UPLOAD_ERR_OK) {
-        $nombre_imagen = basename($_FILES['referencia']['name']);
+        $ext = strtolower(pathinfo($_FILES['referencia']['name'], PATHINFO_EXTENSION));
+        $permitidas = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+        if (!in_array($ext, $permitidas)) {
+            $errores[] = 'La imagen debe ser jpg, png, gif o webp.';
+        } elseif ($_FILES['referencia']['size'] > 5 * 1024 * 1024) {
+            $errores[] = 'La imagen no debe superar 5 MB.';
+        } else {
+            $nombre_imagen = uniqid('ref_') . '.' . $ext;
+            $destino = __DIR__ . '/../../uploads/referencias/' . $nombre_imagen;
+            if (!move_uploaded_file($_FILES['referencia']['tmp_name'], $destino)) {
+                $errores[] = 'No se pudo guardar la imagen.';
+                $nombre_imagen = null;
+            }
+        }
     }
 
-    $mensaje_exito = true;
+    if (empty($errores)) {
+        try {
+            $sql = "INSERT INTO pedidos_personalizados 
+                    (nombre_cliente, telefono, personaje, referencia_imagen,
+                     texto_personalizado, tamano_cm, tipo_apertura)
+                    VALUES (:nombre, :telefono, :personaje, :imagen, :texto, :tamano, :apertura)";
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                ':nombre'   => $nombre,
+                ':telefono' => $telefono,
+                ':personaje' => $personaje,
+                ':imagen'   => $nombre_imagen,
+                ':texto'    => $texto ?: null,
+                ':tamano'   => $tamano ?: null,
+                ':apertura' => implode(', ', $aperturas) ?: null,
+            ]);
+
+            $mensaje_exito = true;
+        } catch (PDOException $e) {
+            $errores[] = 'Error al guardar: ' . $e->getMessage();
+        }
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -147,6 +190,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p>Se agregó exitosamente</p>
         </div>
     </main>
+
+    <?php if (!empty($errores)): ?>
+    <div class="alert alert-danger">
+        <strong>Hubo errores:</strong>
+        <ul class="mb-0">
+            <?php foreach ($errores as $e): ?>
+                <li><?= htmlspecialchars($e) ?></li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+    <?php endif; ?>
 
     <?php 
         if (file_exists('../../plantilla/footer.php')) {

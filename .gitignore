@@ -23,3 +23,13 @@ config.local.php
 
 # Node (si algún día usas npm)
 node_modules/
+
+# Configuración local de la BD (credenciales)
+conexion.php
+
+# Ignora las imágenes subidas, pero mantén la estructura de carpetas
+/uploads/*
+!/uploads/.gitkeep
+!/uploads/referencias/
+/uploads/referencias/*
+!/uploads/referencias/.gitkeep

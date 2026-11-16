@@ -1,7 +1,15 @@
 <?php 
+include_once __DIR__ . '/../../conexion.php';
 include __DIR__ . '/../../plantilla/header-admin.php'; 
 
-$pedidos = array(); 
+$stmt = $pdo->query("
+    SELECT id, nombre_cliente, telefono, personaje, texto_personalizado,
+           tamano_cm, tipo_apertura, referencia_imagen, estado, creado_en
+    FROM pedidos_personalizados
+    WHERE estado = 'pendiente'
+    ORDER BY creado_en DESC
+");
+$pedidos = $stmt->fetchAll();
 ?>
 
 <div class="container my-5">
@@ -17,24 +25,29 @@ $pedidos = array();
         <div class="d-flex flex-column gap-3">
             
             <?php if (empty($pedidos)) { ?>
-                
-                <div class="text-center py-4 text-muted fw-semibold">
-                    Sin pedidos pendientes por ahora.
-                </div>
-
-            <?php } else { ?>
-
-                <?php foreach ($pedidos as $pedido) { ?>
-                    <div class="d-flex align-items-center justify-content-between p-3 bg-white rounded-pill border border-2" style="border-color: #8BD2C2 !important;">
-                        <div class="d-flex align-items-center gap-3">
-                            <img src="<?php echo $pedido['imagen']; ?>" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
-                            <span class="fw-semibold text-dark"><?php echo $pedido['nombre_producto']; ?> / <?php echo $pedido['cliente']; ?></span>
-                        </div>
-                        <span class="border border-secondary px-3 py-1 rounded text-muted fw-bold"><?php echo $pedido['cantidad']; ?></span>
-                    </div>
-                <?php } ?>
-
-            <?php } ?>
+    <div class="text-center py-4 text-muted fw-semibold">
+        Sin pedidos pendientes por ahora.
+    </div>
+<?php } else { ?>
+    <?php foreach ($pedidos as $p) { ?>
+        <div class="d-flex align-items-center justify-content-between p-3 bg-white rounded-pill border border-2" style="border-color: #8BD2C2 !important;">
+            <div class="d-flex align-items-center gap-3">
+                <?php if ($p['referencia_imagen']): ?>
+                    <img src="/pinatas-mel/uploads/referencias/<?= htmlspecialchars($p['referencia_imagen']) ?>" 
+                         class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                <?php else: ?>
+                    <div class="rounded-circle bg-secondary" style="width: 40px; height: 40px;"></div>
+                <?php endif; ?>
+                <span class="fw-semibold text-dark">
+                    <?= htmlspecialchars($p['personaje']) ?> / <?= htmlspecialchars($p['nombre_cliente']) ?>
+                </span>
+            </div>
+            <span class="border border-secondary px-3 py-1 rounded text-muted fw-bold">
+                <?= htmlspecialchars($p['creado_en']) ?>
+            </span>
+        </div>
+    <?php } ?>
+<?php } ?>
 
         </div>
     </div>
