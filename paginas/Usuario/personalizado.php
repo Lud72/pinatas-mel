@@ -1,180 +1,156 @@
 <?php
+// TODO: cuando exista BD, guardar el pedido personalizado y la imagen subida.
+
 $mensaje_exito = false;
+$errores = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nombre = $_POST['nombre'] ?? '';
-    $telefono = $_POST['telefono'] ?? '';
-    $personaje = $_POST['personaje'] ?? '';
-    $texto_personalizado = $_POST['texto-personalizado'] ?? '';
-    $tamano = $_POST['tamano'] ?? '';
+    $nombre    = trim($_POST['nombre'] ?? '');
+    $telefono  = trim($_POST['telefono'] ?? '');
+    $personaje = trim($_POST['personaje'] ?? '');
+    $texto     = trim($_POST['texto-personalizado'] ?? '');
+    $tamano    = trim($_POST['tamano'] ?? '');
     $aperturas = $_POST['apertura'] ?? [];
 
-    $nombre_imagen = '';
+    if ($nombre   === '') $errores[] = 'El nombre es obligatorio.';
+    if ($telefono === '') $errores[] = 'El teléfono es obligatorio.';
+    if ($personaje === '') $errores[] = 'Describe qué personaje, forma u objeto quieres.';
+    if ($tamano   === '') $errores[] = 'El tamaño es obligatorio.';
+
+    // Validación opcional de la imagen
+    $imagen_ok = true;
     if (isset($_FILES['referencia']) && $_FILES['referencia']['error'] === UPLOAD_ERR_OK) {
-        $nombre_imagen = basename($_FILES['referencia']['name']);
+        $tipos = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!in_array($_FILES['referencia']['type'], $tipos, true)) {
+            $errores[] = 'La imagen debe ser JPG, PNG o WEBP.';
+            $imagen_ok = false;
+        }
     }
 
-    $mensaje_exito = true;
+    if (empty($errores) && $imagen_ok) {
+        $mensaje_exito = true;
+        // TODO: mover imagen a /uploads y guardar el pedido en BD.
+    }
 }
+
+include __DIR__ . '/../../plantilla/header-publico.php';
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personalización - Piñatas-Mel</title>
-    <link rel="stylesheet" href="../../estilos/personalizado.css">
-</head>
-<body>
 
-    <?php 
-        if (file_exists('../../plantilla/header-publico.php')) {
-            include '../../plantilla/header-publico.php';
-        } else {
-    ?>
-    <header class="header">
-        <div class="logo-container">
-            <img src="../../imagenes/logo.png" alt="Piñatas-Mel Logo" class="logo">
-            <span class="slogan">Donde la diversión comienza a palazos.</span>
+<div class="container my-5" style="max-width: 900px;">
+
+    <!-- Hero -->
+    <div class="d-flex flex-column flex-md-row align-items-center justify-content-center gap-4 mb-4">
+        <img src="<?= BASE_URL ?>/imagenes/Pinata_per_crea.png" alt="Zona de creación" style="max-width:220px;">
+        <div class="text-center text-md-start">
+            <h1 class="fs-3 fw-bold mb-2">¡Llegaste a la zona de creación!</h1>
+            <p class="fs-5 mb-0">Platícanos tu idea y hazla realidad</p>
         </div>
-        <nav class="nav">
-            <a href="../../index.php">Inicio</a>
-            <a href="nosotros.php">Nosotros</a>
-            <a href="contactos.php">Contáctanos</a>
-            <a href="Carrito.php" class="cart-icon">🛒</a>
-            <div class="menu-dropdown">
-                <button class="menu-btn">☰</button>
-                <div class="dropdown-content">
-                    <a href="catalogo.php">Catálogo</a>
-                    <a href="personalizado.php" class="active">Personalización</a>
-                    <a href="distribuidor.php">Distribuidores</a>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <?php } ?>
+    </div>
 
-    <main class="creation-zone">
-        <div class="hero-content">
-            <div class="hero-image-container">
-                <img src="../../imagenes/Pinata_per_crea.png" alt="Zona de creación" class="hero-img">
-            </div>
-            <div class="hero-text">
-                <h1>¡Llegaste a la zona de creación!</h1>
-                <p>Platícanos tu idea y hazla realidad</p>
-            </div>
+    <!-- Errores -->
+    <?php if (!empty($errores)): ?>
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                <?php foreach ($errores as $e): ?>
+                    <li><?= htmlspecialchars($e) ?></li>
+                <?php endforeach; ?>
+            </ul>
         </div>
+    <?php endif; ?>
 
-        <section class="form-card">
-            <form id="customization-form" action="personalizado.php" method="POST" enctype="multipart/form-data">
-                
-                <div id="step-1" class="form-step active">
-                    <h2>Datos de Contacto</h2>
-                    
-                    <div class="form-group">
-                        <label for="nombre">Nombre Completo</label>
-                        <input type="text" id="nombre" name="nombre" placeholder="Ingresa un Nombre" required>
-                    </div>
+    <!-- Formulario -->
+    <div class="card border-0 rounded-4 p-4" style="border: 3px solid #A3D8C5 !important;">
+        <form id="customization-form" action="personalizado.php" method="POST" enctype="multipart/form-data">
 
-                    <div class="form-group">
-                        <label for="telefono">Teléfono</label>
-                        <input type="tel" id="telefono" name="telefono" placeholder="Ingresa el número de teléfono" required>
-                    </div>
+            <!-- Paso 1 -->
+            <div id="step-1" class="form-step">
+                <h2 class="fs-4 text-center mb-4">Datos de Contacto</h2>
 
-                    <div class="button-group single-right">
-                        <button type="button" class="btn btn-primary" onclick="nextStep(2)">Siguiente</button>
-                    </div>
+                <div class="mb-3">
+                    <label for="nombre" class="form-label fw-semibold">Nombre Completo</label>
+                    <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Ingresa un Nombre" required>
                 </div>
 
-                <div id="step-2" class="form-step">
-                    <h2>Detalles del Diseño</h2>
-                    
-                    <div class="form-group">
-                        <label for="personaje">¿Qué personaje, forma u objeto quieres?</label>
-                        <input type="text" id="personaje" name="personaje">
-                    </div>
+                <div class="mb-3">
+                    <label for="telefono" class="form-label fw-semibold">Teléfono</label>
+                    <input type="tel" id="telefono" name="telefono" class="form-control" placeholder="Ingresa el número de teléfono" required>
+                </div>
 
-                    <div class="form-group">
-                        <label for="referencia">Sube una imagen de referencia / foto</label>
-                        <div class="file-upload-box">
-                            <input type="file" id="referencia" name="referencia" accept="image/*">
-                        </div>
-                    </div>
+                <div class="text-end">
+                    <button type="button" class="btn btn-primario rounded-pill px-4" onclick="nextStep(2)">Siguiente</button>
+                </div>
+            </div>
 
-                    <div class="form-group">
-                        <label for="texto-personalizado">Texto o Nombre personalizado en la piñata</label>
-                        <input type="text" id="texto-personalizado" name="texto-personalizado">
-                    </div>
+            <!-- Paso 2 -->
+            <div id="step-2" class="form-step d-none">
+                <h2 class="fs-4 text-center mb-4">Detalles del Diseño</h2>
 
-                    <div class="button-group">
-                        <button type="button" class="btn btn-secondary" onclick="nextStep(1)">Regresar</button>
-                        <button type="button" class="btn btn-primary" onclick="nextStep(3)">Siguiente</button>
+                <div class="mb-3">
+                    <label for="personaje" class="form-label fw-semibold">¿Qué personaje, forma u objeto quieres?</label>
+                    <input type="text" id="personaje" name="personaje" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label for="referencia" class="form-label fw-semibold">Sube una imagen de referencia / foto</label>
+                    <input type="file" id="referencia" name="referencia" class="form-control" accept="image/*">
+                </div>
+
+                <div class="mb-3">
+                    <label for="texto-personalizado" class="form-label fw-semibold">Texto o Nombre personalizado en la piñata</label>
+                    <input type="text" id="texto-personalizado" name="texto-personalizado" class="form-control">
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="nextStep(1)">Regresar</button>
+                    <button type="button" class="btn btn-primario rounded-pill px-4" onclick="nextStep(3)">Siguiente</button>
+                </div>
+            </div>
+
+            <!-- Paso 3 -->
+            <div id="step-3" class="form-step d-none">
+                <h2 class="fs-4 text-center mb-4">Detalles de Tamaño</h2>
+
+                <div class="mb-3">
+                    <label for="tamano" class="form-label fw-semibold">Tamaño deseado (cm)</label>
+                    <input type="number" id="tamano" name="tamano" class="form-control" min="1">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold d-block">Tipo de apertura</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="apertura[]" value="tradicional" id="ap-trad">
+                        <label class="form-check-label" for="ap-trad">De Palo / Tradicional</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="apertura[]" value="cintas" id="ap-cintas">
+                        <label class="form-check-label" for="ap-cintas">De Cintas / Jalón</label>
                     </div>
                 </div>
 
-                <div id="step-3" class="form-step">
-                    <h2>Detalles de Tamaño</h2>
-                    
-                    <div class="form-group">
-                        <label for="tamano">Tamaño deseado(cm)</label>
-                        <input type="number" id="tamano" name="tamano" min="1">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="label-title">Tipo de apertura</label>
-                        <label class="checkbox-container">
-                            <input type="checkbox" name="apertura[]" value="tradicional">
-                            <span class="checkmark"></span>
-                            De Palo / Tradicional
-                        </label>
-                        <label class="checkbox-container">
-                            <input type="checkbox" name="apertura[]" value="cintas">
-                            <span class="checkmark"></span>
-                            De Cintas / Jalón
-                        </label>
-                    </div>
-
-                    <div class="button-group">
-                        <button type="button" class="btn btn-secondary" onclick="nextStep(2)">Regresar</button>
-                        <button type="submit" class="btn btn-primary">Añadir al Carrito</button>
-                    </div>
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="nextStep(2)">Regresar</button>
+                    <button type="submit" class="btn btn-primario rounded-pill px-4">Añadir al Carrito</button>
                 </div>
-
-            </form>
-        </section>
-
-        <div id="success-alert" class="success-banner <?php echo $mensaje_exito ? '' : 'hidden'; ?>">
-            <p>Se agregó exitosamente</p>
-        </div>
-    </main>
-
-    <?php 
-        if (file_exists('../../plantilla/footer.php')) {
-            include '../../plantilla/footer.php';
-        } else {
-    ?>
-    <footer class="footer">
-        <div class="footer-social">
-            <span>Síguenos</span>
-            <div class="social-icons">
-                <a href="#"><i class="icon-facebook"></i>Facebook</a>
-                <a href="#"><i class="icon-instagram"></i>Instagram</a>
-                <a href="#"><i class="icon-x"></i>X</a>
             </div>
-        </div>
-        <div class="footer-copy">
-            &copy; <?php echo date('Y'); ?> Piñatas-Mel
-        </div>
-    </footer>
-    <?php } ?>
 
-    <script>
-        function nextStep(stepNumber) {
-            document.querySelectorAll('.form-step').forEach(step => {
-                step.classList.remove('active');
-            });
-            document.getElementById('step-' + stepNumber).classList.add('active');
-        }
-    </script>
-</body>
-</html>
+        </form>
+    </div>
+
+    <!-- Éxito -->
+    <?php if ($mensaje_exito): ?>
+        <div class="alert alert-success text-center fs-5 fw-bold rounded-4 p-4 mt-4">
+            Se agregó exitosamente
+        </div>
+    <?php endif; ?>
+
+</div>
+
+<script>
+    function nextStep(stepNumber) {
+        document.querySelectorAll('.form-step').forEach(step => step.classList.add('d-none'));
+        document.getElementById('step-' + stepNumber).classList.remove('d-none');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
+
+<?php include __DIR__ . '/../../plantilla/footer.php'; ?>

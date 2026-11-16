@@ -10,7 +10,7 @@
                 <a href="#" class="text-white fs-4 me-3"><i class="bi bi-tiktok"></i></a>
             </div>
             <div class="col-md-6 text-md-end">
-                <p class="mb-0">© 2026 Piñatas-Mel</p>
+                <p class="mb-0">© <?= date('Y') ?> Piñatas-Mel</p>
                 <small>Todos los derechos reservados.</small>
             </div>
         </div>
