@@ -21,16 +21,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $ext = strtolower(pathinfo($_FILES['referencia']['name'], PATHINFO_EXTENSION));
         $permitidas = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
-        if (!in_array($ext, $permitidas)) {
+                if (!in_array($ext, $permitidas)) {
             $errores[] = 'La imagen debe ser jpg, png, gif o webp.';
         } elseif ($_FILES['referencia']['size'] > 5 * 1024 * 1024) {
             $errores[] = 'La imagen no debe superar 5 MB.';
         } else {
-            $nombre_imagen = uniqid('ref_') . '.' . $ext;
-            $destino = __DIR__ . '/../../uploads/referencias/' . $nombre_imagen;
-            if (!move_uploaded_file($_FILES['referencia']['tmp_name'], $destino)) {
-                $errores[] = 'No se pudo guardar la imagen.';
-                $nombre_imagen = null;
+            // ==========================================
+            // COMPRESIÓN Y REDIMENSIONADO DE IMAGEN
+            // ==========================================
+            $ruta_temporal = $_FILES['referencia']['tmp_name'];
+            
+            // 1. Obtener dimensiones originales
+            list($ancho_orig, $alto_orig, $tipo) = getimagesize($ruta_temporal);
+            
+            // 2. Calcular nuevas dimensiones (máximo 1200px de ancho)
+            $max_ancho = 1200;
+            if ($ancho_orig > $max_ancho) {
+                $ratio = $max_ancho / $ancho_orig;
+                $nuevo_ancho = $max_ancho;
+                $nuevo_alto = (int)($alto_orig * $ratio);
+            } else {
+                $nuevo_ancho = $ancho_orig;
+                $nuevo_alto = $alto_orig;
+            }
+            
+            // 3. Crear un lienzo (canvas) en blanco
+            $lienzo = imagecreatetruecolor($nuevo_ancho, $nuevo_alto);
+            
+            // 4. Cargar la imagen original según su formato
+            switch ($tipo) {
+                case IMAGETYPE_JPEG: $imagen_orig = imagecreatefromjpeg($ruta_temporal); break;
+                case IMAGETYPE_PNG:  $imagen_orig = imagecreatefrompng($ruta_temporal); break;
+                case IMAGETYPE_GIF:  $imagen_orig = imagecreatefromgif($ruta_temporal); break;
+                case IMAGETYPE_WEBP: $imagen_orig = imagecreatefromwebp($ruta_temporal); break;
+                default:
+                    $errores[] = 'Formato de imagen no soportado.';
+                    $imagen_orig = null;
+                    break;
+            }
+            
+            if (isset($imagen_orig) && $imagen_orig) {
+                // 5. Copiar y redimensionar al lienzo
+                imagecopyresampled($lienzo, $imagen_orig, 0, 0, 0, 0, $nuevo_ancho, $nuevo_alto, $ancho_orig, $alto_orig);
+                
+                // 6. Guardar como WEBP (pesa hasta 80% menos que JPG)
+                $nombre_imagen = uniqid('ref_') . '.webp';
+                $destino = __DIR__ . '/../../uploads/referencias/' . $nombre_imagen;
+                
+                if (!imagewebp($lienzo, $destino, 75)) { // 75 = calidad (0-100)
+                    $errores[] = 'No se pudo guardar la imagen comprimida.';
+                    $nombre_imagen = null;
+                }
+                
+                // 7. Liberar memoria
+                imagedestroy($lienzo);
+                imagedestroy($imagen_orig);
             }
         }
     }
