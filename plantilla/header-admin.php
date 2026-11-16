@@ -1,4 +1,8 @@
-<?php require_once __DIR__ . '/../config.php'; ?>
+<?php 
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../auth.php';
+requiereLogin();
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -28,7 +32,19 @@
                 <li class="nav-item"><a class="nav-link text-white fw-bold" href="<?= BASE_URL ?>/paginas/admin/catalogo_A.php">Catálogo</a></li>
                 <li class="nav-item"><a class="nav-link text-white fw-bold" href="<?= BASE_URL ?>/paginas/admin/reportes.php">Reportes</a></li>
                 <li class="nav-item"><a class="nav-link text-white fw-bold" href="<?= BASE_URL ?>/paginas/admin/productos_A.php">Productos</a></li>
+
                 <li class="nav-item ms-4">
+                    <span class="text-white small me-2">
+                        <i class="bi bi-person-circle"></i>
+                        <?= htmlspecialchars(adminActual()['nombre'] ?? '') ?>
+                    </span>
+                </li>
+                <li class="nav-item">
+                    <a href="<?= BASE_URL ?>/paginas/admin/logout.php" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-box-arrow-right me-1"></i>Cerrar sesión
+                    </a>
+                </li>
+                <li class="nav-item ms-2">
                     <a href="<?= BASE_URL ?>/index.php" class="btn btn-outline-light btn-sm">Salir al sitio</a>
                 </li>
             </ul>
