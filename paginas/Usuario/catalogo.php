@@ -1,19 +1,10 @@
 <?php 
-include __DIR__ . '/../../plantilla/header-publico.php'; 
+include __DIR__ . '/../../plantilla/header-publico.php';
 
-// TODO: reemplazar por consulta SQL cuando exista BD.
-$categoriasData = require __DIR__ . '/../../datos/categorias.php';
+require_once __DIR__ . '/../../conexion.php';
+require_once __DIR__ . '/../../modelos/categorias.php';
 
-// Armar el array que usa la vista: [imagen, alt, titulo, link]
-$categorias = [];
-foreach ($categoriasData as $slug => $c) {
-    $categorias[] = [
-        $c['icono'],
-        $c['titulo'],
-        $c['titulo'],
-        BASE_URL . '/paginas/Usuario/categoria.php?tipo=' . urlencode($slug),
-    ];
-}
+$categorias = obtenerCategorias($pdo);
 ?>
 
 <div class="container my-5">
@@ -30,18 +21,19 @@ foreach ($categoriasData as $slug => $c) {
     </div>
 
     <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4">
-        <?php foreach ($categorias as [$img, $alt, $titulo, $link]): ?>
+        <?php foreach ($categorias as $c): ?>
             <div class="col">
-                <a href="<?= htmlspecialchars($link) ?>" class="text-decoration-none">
+                <a href="<?= BASE_URL ?>/paginas/Usuario/categoria.php?tipo=<?= urlencode($c['slug']) ?>" 
+                   class="text-decoration-none">
                     <div class="card h-100 card-categoria">
                         <div class="card-categoria-img">
-                            <img src="<?= BASE_URL ?>/imagenes/<?= htmlspecialchars($img) ?>" 
+                            <img src="<?= BASE_URL ?>/imagenes/<?= htmlspecialchars($c['icono']) ?>" 
                                  class="img-fluid" 
-                                 alt="<?= htmlspecialchars($alt) ?>"
+                                 alt="<?= htmlspecialchars($c['titulo']) ?>"
                                  loading="lazy">
                         </div>
                         <div class="card-body text-center bg-white card-categoria-body">
-                            <h6 class="card-title fw-bold text-dark mb-0"><?= htmlspecialchars($titulo) ?></h6>
+                            <h6 class="card-title fw-bold text-dark mb-0"><?= htmlspecialchars($c['titulo']) ?></h6>
                         </div>
                     </div>
                 </a>

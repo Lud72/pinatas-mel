@@ -1,21 +1,32 @@
 <?php 
 include __DIR__ . '/../../plantilla/header-publico.php';
 
-// TODO: reemplazar por consultas SQL cuando exista BD.
-$productos  = require __DIR__ . '/../../datos/productos.php';
-$categorias = require __DIR__ . '/../../datos/categorias.php';
+require_once __DIR__ . '/../../conexion.php';
+require_once __DIR__ . '/../../modelos/categorias.php';
+require_once __DIR__ . '/../../modelos/productos.php';
 
-$tipo           = $_GET['tipo'] ?? '';
-$productoSlug   = $_GET['producto'] ?? '';
+$tipo         = $_GET['tipo'] ?? '';
+$productoSlug = $_GET['producto'] ?? '';
 
-if (!isset($categorias[$tipo])) {
+// Validar que la categoría exista
+$catActual = obtenerCategoriaPorSlug($pdo, $tipo);
+if ($catActual === null) {
     header('Location: catalogo.php');
     exit;
 }
 
-$catActual        = $categorias[$tipo];
-$productosFiltros = array_filter($productos, fn($p) => $p['categoria'] === $tipo);
-$productoSel      = ($productoSlug && isset($productos[$productoSlug])) ? $productos[$productoSlug] : null;
+// Productos de esta categoría
+$productosFiltros = obtenerProductos($pdo, (int)$catActual['id']);
+
+// Producto seleccionado (si hay uno en la URL)
+$productoSel = null;
+if ($productoSlug !== '') {
+    $temp = obtenerProductoPorSlug($pdo, $productoSlug);
+    // Solo mostrar si pertenece a esta categoría
+    if ($temp && (int)$temp['categoria_id'] === (int)$catActual['id']) {
+        $productoSel = $temp;
+    }
+}
 ?>
 
 <div class="container my-5">
@@ -45,11 +56,11 @@ $productoSel      = ($productoSlug && isset($productos[$productoSlug])) ? $produ
         </div>
     <?php else: ?>
         <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
-            <?php foreach ($productosFiltros as $slug => $p): ?>
+            <?php foreach ($productosFiltros as $p): ?>
                 <div class="col">
-                    <a href="categoria.php?tipo=<?= urlencode($tipo) ?>&producto=<?= urlencode($slug) ?>"
+                    <a href="categoria.php?tipo=<?= urlencode($tipo) ?>&producto=<?= urlencode($p['slug']) ?>"
                        class="text-decoration-none">
-                        <div class="card card-producto h-100 <?= ($productoSlug === $slug) ? 'border-seleccionado' : '' ?>">
+                        <div class="card card-producto h-100 <?= ($productoSel && $productoSel['slug'] === $p['slug']) ? 'border-seleccionado' : '' ?>">
                             <div class="card-categoria-img">
                                 <img src="<?= BASE_URL ?>/imagenes/<?= htmlspecialchars($p['imagen']) ?>"
                                      alt="<?= htmlspecialchars($p['nombre']) ?>"
@@ -82,18 +93,18 @@ $productoSel      = ($productoSlug && isset($productos[$productoSlug])) ? $produ
                     </p>
 
                     <p><strong>Capacidad de dulces y sorpresa:</strong><br>
-                        <?= htmlspecialchars($productoSel['capacidad']) ?></p>
+                        <?= htmlspecialchars($productoSel['capacidad'] ?? '') ?></p>
 
-                    <p><strong>Rendimiento:</strong> <?= htmlspecialchars($productoSel['rendimiento']) ?></p>
+                    <p><strong>Rendimiento:</strong> <?= htmlspecialchars($productoSel['rendimiento'] ?? '') ?></p>
 
                     <p><strong>Materiales de fabricación:</strong><br>
-                        <?= htmlspecialchars($productoSel['estructura']) ?></p>
+                        <?= htmlspecialchars($productoSel['estructura'] ?? '') ?></p>
 
                     <p><strong>Decoración:</strong><br>
-                        <?= htmlspecialchars($productoSel['decoracion']) ?></p>
+                        <?= htmlspecialchars($productoSel['decoracion'] ?? '') ?></p>
 
                     <div class="d-flex gap-2 mt-3">
-                        <a href="<?= BASE_URL ?>/paginas/Usuario/Carrito.php?add=<?= urlencode($productoSlug) ?>"
+                        <a href="<?= BASE_URL ?>/paginas/Usuario/Carrito.php?add=<?= urlencode($productoSel['slug']) ?>"
                            class="btn btn-primario rounded-pill px-4 py-2">
                             Añadir al carrito
                         </a>
