@@ -1,8 +1,17 @@
 <?php 
 include __DIR__ . '/../../plantilla/header-admin.php'; 
 
-// TODO: reemplazar por consulta SQL cuando exista BD.
-$categorias = require __DIR__ . '/../../datos/categorias.php';
+require_once __DIR__ . '/../../conexion.php';
+require_once __DIR__ . '/../../modelos/categorias.php';
+require_once __DIR__ . '/../../modelos/productos.php';
+
+$categorias = obtenerCategorias($pdo, false);  // incluye inactivas para admin
+
+// Contar productos por categoría
+$conteoProductos = [];
+foreach ($categorias as $c) {
+    $conteoProductos[$c['id']] = count(obtenerProductos($pdo, (int)$c['id']));
+}
 ?>
 
 <div class="container my-5">
@@ -20,9 +29,9 @@ $categorias = require __DIR__ . '/../../datos/categorias.php';
     </div>
 
     <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
-        <?php foreach ($categorias as $slug => $c): ?>
+        <?php foreach ($categorias as $c): ?>
             <div class="col">
-                <a href="productos_A.php?categoria=<?= urlencode($slug) ?>" class="text-decoration-none">
+                <a href="productos_A.php?categoria=<?= urlencode($c['slug']) ?>" class="text-decoration-none">
                     <div class="card h-100 card-categoria shadow-sm">
                         <div class="card-categoria-img">
                             <img src="<?= BASE_URL ?>/imagenes/<?= htmlspecialchars($c['icono']) ?>" 
@@ -31,7 +40,12 @@ $categorias = require __DIR__ . '/../../datos/categorias.php';
                         </div>
                         <div class="card-body text-center bg-white card-categoria-body">
                             <h6 class="card-title fw-bold text-dark mb-1"><?= htmlspecialchars($c['titulo']) ?></h6>
-                            <span class="badge bg-secondary rounded-pill"><?= $c['productos'] ?> productos</span>
+                            <span class="badge bg-secondary rounded-pill">
+                                <?= $conteoProductos[$c['id']] ?> productos
+                            </span>
+                            <?php if (!$c['activa']): ?>
+                                <span class="badge bg-warning text-dark rounded-pill ms-1">Inactiva</span>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </a>
@@ -39,6 +53,7 @@ $categorias = require __DIR__ . '/../../datos/categorias.php';
         <?php endforeach; ?>
     </div>
 
+    <!-- Formulario "Nueva Categoría" (aún sin guardar; Fase 5.6) -->
     <div class="row justify-content-center mt-4 d-none" id="contenedor-formulario">
         <div class="col-md-8 col-lg-6">
             <div class="card shadow border-0" style="border: 3px solid #A3D8C5 !important; border-radius: 15px;">
@@ -48,6 +63,7 @@ $categorias = require __DIR__ . '/../../datos/categorias.php';
                 </div>
 
                 <div class="card-body p-4">
+                    <!-- TODO: Fase 5.6 - implementar guardado -->
                     <form action="" method="POST" enctype="multipart/form-data">
                         <div class="mb-3">
                             <label class="form-label text-muted small fw-bold">Nombre</label>

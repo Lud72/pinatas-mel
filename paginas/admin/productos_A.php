@@ -1,26 +1,20 @@
 <?php 
 include __DIR__ . '/../../plantilla/header-admin.php'; 
 
-// TODO: reemplazar por consultas SQL cuando exista BD.
-$todasLasCategorias = require __DIR__ . '/../../datos/categorias.php';
-$todosLosProductos   = require __DIR__ . '/../../datos/productos.php';
+require_once __DIR__ . '/../../conexion.php';
+require_once __DIR__ . '/../../modelos/categorias.php';
+require_once __DIR__ . '/../../modelos/productos.php';
 
 $catSlug = $_GET['categoria'] ?? 'comida';
 
-if (!isset($todasLasCategorias[$catSlug])) {
+$categoria = obtenerCategoriaPorSlug($pdo, $catSlug);
+if ($categoria === null) {
     header('Location: catalogo_A.php');
     exit;
 }
 
-$catTitulo = $todasLasCategorias[$catSlug]['titulo'];
-
-// Filtrar productos de esta categoría
-$productosExistentes = [];
-foreach ($todosLosProductos as $slug => $p) {
-    if ($p['categoria'] === $catSlug) {
-        $productosExistentes[$slug] = $p;
-    }
-}
+$catTitulo = $categoria['titulo'];
+$productosExistentes = obtenerProductos($pdo, (int)$categoria['id']);
 ?>
 
 <style>
@@ -226,11 +220,12 @@ foreach ($todosLosProductos as $slug => $p) {
             <div class="col">
                 <div class="card card-carrusel h-100">
                     <div class="card-carrusel-img">
-                        <img src="<?= BASE_URL ?>/imagenes/<?= $p['imagen'] ?>" alt="<?= $p['nombre'] ?>">
+                        <img src="<?= BASE_URL ?>/imagenes/<?= htmlspecialchars($p['imagen']) ?>" 
+                            alt="<?= htmlspecialchars($p['nombre']) ?>">
                     </div>
                     <div class="card-body p-3 text-center">
-                        <h6 class="fw-bold text-dark mb-1"><?= $p['nombre'] ?></h6>
-                        <p class="text-muted small mb-0"><?= htmlspecialchars($p['capacidad']) ?></p>
+                        <h6 class="fw-bold text-dark mb-1"><?= htmlspecialchars($p['nombre']) ?></h6>
+                        <p class="text-muted small mb-0"><?= htmlspecialchars($p['descripcion_corta'] ?? '') ?></p>
                     </div>
                 </div>
             </div>
@@ -254,15 +249,29 @@ foreach ($todosLosProductos as $slug => $p) {
             </div>
             
             <div class="col-md-8">
-                <h3 class="fw-bold mb-3 text-dark">Piñata de Hamburguesa</h3>
-                <p class="fw-bold text-danger fs-5 mb-3">$500.00 MXN</p>
-                
-                <ul class="lista-caracteristicas text-muted">
-                    <li><strong>Capacidad:</strong> 3 a 5 kg de dulces surtidos (o juguetes pequeños y confeti).</li>
-                    <li><strong>Rendimiento:</strong> 5 a 25 niños</li>
-                    <li><strong>Materiales:</strong> Cartón de alta resistencia y papel periódico/cartonería tradicional.</li>
-                    <li><strong>Decoración:</strong> Papel china y crepé picado/plisado en capas de colores vivos (pan, carne, queso, lechuga y jitomate) con detalles en foamy/goma EVA.</li>
-                </ul>
+                <?php $productoDestacado = $productosExistentes[0] ?? null; ?>
+
+                <?php if ($productoDestacado): ?>
+                <div class="col-md-4 text-center mb-4 mb-md-0">
+                    <img src="<?= BASE_URL ?>/imagenes/<?= htmlspecialchars($productoDestacado['imagen']) ?>" 
+                        alt="<?= htmlspecialchars($productoDestacado['nombre']) ?>" 
+                        class="img-fluid" style="max-height: 250px; object-fit: contain;">
+                </div>
+
+                <div class="col-md-8">
+                    <h3 class="fw-bold mb-3 text-dark"><?= htmlspecialchars($productoDestacado['nombre']) ?></h3>
+                    <p class="fw-bold text-danger fs-5 mb-3">$<?= htmlspecialchars($productoDestacado['precio']) ?> MXN</p>
+                    
+                    <ul class="lista-caracteristicas text-muted">
+                        <li><strong>Capacidad:</strong> <?= htmlspecialchars($productoDestacado['capacidad'] ?? '') ?></li>
+                        <li><strong>Rendimiento:</strong> <?= htmlspecialchars($productoDestacado['rendimiento'] ?? '') ?></li>
+                        <li><strong>Materiales:</strong> <?= htmlspecialchars($productoDestacado['estructura'] ?? '') ?></li>
+                        <li><strong>Decoración:</strong> <?= htmlspecialchars($productoDestacado['decoracion'] ?? '') ?></li>
+                    </ul>
+                    
+                    <!-- botones igual -->
+                </div>
+                <?php endif; ?>
 
                 <div class="d-flex gap-3 mt-4">
                     <button type="button" class="btn btn-primario rounded-pill px-5 fw-bold" onclick="document.getElementById('btnAccionesExito').scrollIntoView({behavior: 'smooth'}); mostrarMensaje('msg-seccion4', '¡Producto subido exitosamente!', 'exito');">
