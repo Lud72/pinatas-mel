@@ -1,16 +1,14 @@
 <?php 
+include_once __DIR__ . '/../../conexion.php'; // Conectamos a la BD
 include __DIR__ . '/../../plantilla/header-publico.php'; 
 
-$categorias = [
-    ['estrella.png',    'Piñatas de estrellas',   'Tradicionales de Estrellas', '/pinatas-mel/paginas/Usuario/categoria.php?tipo=estrellas'],
-    ['bob.png',         'Piñatas de personajes',  'Personajes y Cultura Pop',   '/pinatas-mel/paginas/Usuario/categoria.php?tipo=personajes'],
-    ['numero1.png',     'Piñatas de números',     'Números y Letras',           '/pinatas-mel/paginas/Usuario/categoria.php?tipo=numeros'],
-    ['caballo.png',     'Piñatas de animales',    'Animales',                   '/pinatas-mel/paginas/Usuario/categoria.php?tipo=animales'],
-    ['espejo.png',      'Piñatas geométricas',    'Formas Geométricas',         '/pinatas-mel/paginas/Usuario/categoria.php?tipo=geometricas'],
-    ['hamburguesa.png', 'Piñatas de comida',      'Objetos, Comida',            '/pinatas-mel/paginas/Usuario/categoria.php?tipo=comida'],
-    ['stitch.png',      'Piñatas de jalón',       'Piñatas de "Jalón"',         '/pinatas-mel/paginas/Usuario/categoria.php?tipo=jalon'],
-    ['perro.png',       'Piñatas humorísticas',   'Humorísticas',               '/pinatas-mel/paginas/Usuario/categoria.php?tipo=humoristicas'],
-];
+// Traemos las categorías activas desde MySQL
+try {
+    $stmt = $pdo->query("SELECT slug, titulo, icono FROM categorias WHERE activa = 1 ORDER BY id ASC");
+    $categorias = $stmt->fetchAll();
+} catch (PDOException $e) {
+    $categorias = []; // Si falla, mostramos vacío
+}
 ?>
 
 <div class="container my-5">
@@ -27,23 +25,23 @@ $categorias = [
     </div>
 
     <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4">
-        <?php foreach ($categorias as [$img, $alt, $titulo, $link]): ?>
-            <div class="col">
-                <a href="<?= htmlspecialchars($link) ?>" class="text-decoration-none">
-                    <div class="card h-100 card-categoria">
-                        <div class="card-categoria-img">
-                            <img src="/pinatas-mel/imagenes/<?= htmlspecialchars($img) ?>" 
-                                 class="img-fluid" 
-                                 alt="<?= htmlspecialchars($alt) ?>"
-                                 loading="lazy">
-                        </div>
-                        <div class="card-body text-center bg-white card-categoria-body">
-                            <h6 class="card-title fw-bold text-dark mb-0"><?= htmlspecialchars($titulo) ?></h6>
-                        </div>
-                    </div>
-                </a>
+        <?php foreach ($categorias as $cat): ?>
+    <div class="col">
+        <a href="/pinatas-mel/paginas/Usuario/categoria.php?tipo=<?= urlencode($cat['slug']) ?>" class="text-decoration-none">
+            <div class="card h-100 card-categoria">
+                <div class="card-categoria-img">
+                    <img src="/pinatas-mel/imagenes/<?= htmlspecialchars($cat['icono']) ?>" 
+                         class="img-fluid" 
+                         alt="<?= htmlspecialchars($cat['titulo']) ?>"
+                         loading="lazy">
+                </div>
+                <div class="card-body text-center bg-white card-categoria-body">
+                    <h6 class="card-title fw-bold text-dark mb-0"><?= htmlspecialchars($cat['titulo']) ?></h6>
+                </div>
             </div>
-        <?php endforeach; ?>
+        </a>
+    </div>
+<?php endforeach; ?>
     </div>
 
     <div class="row mt-5 g-4">
