@@ -12,18 +12,22 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark sticky-top" style="background-color: #D4005B;">
     <div class="container-fluid px-4">
+
         <!-- Logo -->
         <a class="navbar-brand d-flex align-items-center text-decoration-none" href="/pinatas-mel/index.php">
             <img src="/pinatas-mel/imagenes/logo.png" alt="Logo" width="30" class="me-2">
             <span class="fs-6 fst-italic text-white">Donde la diversión comienza a palazos.</span>
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarAdmin">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarAdmin"
+                aria-controls="navbarAdmin" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse justify-content-end" id="navbarAdmin">
-            <ul class="navbar-nav align-items-center">
+
+            <!-- ===== ESCRITORIO (lg+) ===== -->
+            <ul class="navbar-nav align-items-center d-none d-lg-flex">
                 <li class="nav-item"><a class="nav-link text-white fw-bold" href="/pinatas-mel/paginas/admin/pedidos.php">Pedidos</a></li>
                 <li class="nav-item"><a class="nav-link text-white fw-bold" href="/pinatas-mel/paginas/admin/catalogo_A.php">Catálogo</a></li>
                 <li class="nav-item"><a class="nav-link text-white fw-bold" href="/pinatas-mel/paginas/admin/reportes.php">Reportes</a></li>
@@ -32,6 +36,18 @@
                     <a href="/pinatas-mel/index.php" class="btn btn-outline-light btn-sm">Salir al sitio</a>
                 </li>
             </ul>
+
+            <!-- ===== MÓVIL (< lg) — TODO DENTRO DEL MENÚ, CENTRADO ===== -->
+            <ul class="navbar-nav d-lg-none w-100 text-center mt-3">
+                <li class="nav-item"><a class="nav-link text-white fw-bold" href="/pinatas-mel/paginas/admin/pedidos.php">Pedidos</a></li>
+                <li class="nav-item"><a class="nav-link text-white fw-bold" href="/pinatas-mel/paginas/admin/catalogo_A.php">Catálogo</a></li>
+                <li class="nav-item"><a class="nav-link text-white fw-bold" href="/pinatas-mel/paginas/admin/reportes.php">Reportes</a></li>
+                <li class="nav-item"><a class="nav-link text-white fw-bold" href="/pinatas-mel/paginas/admin/productos_A.php">Productos</a></li>
+                <li class="nav-item mt-3 mb-2">
+                    <a href="/pinatas-mel/index.php" class="btn btn-outline-light btn-sm w-75 mx-auto d-block">Salir al sitio</a>
+                </li>
+            </ul>
+
         </div>
     </div>
 </nav>

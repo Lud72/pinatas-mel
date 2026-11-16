@@ -1,127 +1,150 @@
-<?php 
-include_once __DIR__ . '/../../conexion.php';
-include __DIR__ . '/../../plantilla/header-publico.php';
+<?php
+// /pinatas-mel/paginas/Usuario/categoria.php
+require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../conexion.php';
+require_once __DIR__ . '/../../funciones/carrito.php';
 
-$tipo = $_GET['tipo'] ?? '';
-$productoSlug = $_GET['producto'] ?? '';
+// CSRF
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$csrf = $_SESSION['csrf_token'];
 
-// 1. Validar que la categoría exista en la BD
-$stmt = $pdo->prepare("SELECT * FROM categorias WHERE slug = :slug AND activa = 1");
-$stmt->execute([':slug' => $tipo]);
-$catActual = $stmt->fetch();
+// --- Acción POST: añadir al carrito desde esta vista ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'agregar') {
+    if (empty($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        $_SESSION['errores_catalogo'] = ['Token inválido. Recarga la página.'];
+        header('Location: categoria.php?slug=' . urlencode($_POST['slug_actual'] ?? ''));
+        exit;
+    }
+    $productoId = (int)($_POST['producto_id'] ?? 0);
+    $cantidad   = max(1, (int)($_POST['cantidad'] ?? 1));
 
-// Si la categoría no existe, regresamos al catálogo
-if (!$catActual) {
+    try {
+        if ($productoId > 0) {
+            agregarProductoAlCarrito($pdo, $productoId, $cantidad);
+            $_SESSION['exito_catalogo'] = 'Producto añadido al carrito.';
+        }
+    } catch (PDOException $e) {
+        error_log('[categoria] ' . $e->getMessage(), 3, BASE_PATH . '/logs/errores.log');
+        $_SESSION['errores_catalogo'] = ['No pudimos añadir el producto. Intenta de nuevo.'];
+    }
+    header('Location: categoria.php?slug=' . urlencode($_POST['slug_actual'] ?? ''));
+    exit;
+}
+
+$slug = $_GET['slug'] ?? '';
+if ($slug === '') {
     header('Location: catalogo.php');
     exit;
 }
 
-// 2. Traer los productos de esta categoría
-$stmt = $pdo->prepare("SELECT * FROM productos WHERE categoria_id = :cat_id AND activo = 1");
-$stmt->execute([':cat_id' => $catActual['id']]);
-$productosFiltros = $stmt->fetchAll();
+// Categoría
+$stmt = $pdo->prepare("SELECT * FROM categorias WHERE slug = :slug AND activa = 1 LIMIT 1");
+$stmt->execute([':slug' => $slug]);
+$categoria = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// 3. Si hay un producto seleccionado, traer sus datos extra
-$productoSel = null;
-if ($productoSlug) {
-    $stmt = $pdo->prepare("SELECT * FROM productos WHERE slug = :slug AND categoria_id = :cat_id");
-    $stmt->execute([':slug' => $productoSlug, ':cat_id' => $catActual['id']]);
-    $productoSel = $stmt->fetch() ?: null;
+if (!$categoria) {
+    http_response_code(404);
+    $noEncontrada = true;
+} else {
+    $noEncontrada = false;
+    $stmt = $pdo->prepare(
+        "SELECT * FROM productos
+          WHERE categoria_id = :cid AND activo = 1
+       ORDER BY creado_en DESC"
+    );
+    $stmt->execute([':cid' => $categoria['id']]);
+    $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+$errores = $_SESSION['errores_catalogo'] ?? [];
+$exito   = $_SESSION['exito_catalogo']   ?? null;
+unset($_SESSION['errores_catalogo'], $_SESSION['exito_catalogo']);
 ?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= $noEncontrada ? 'Categoría no encontrada' : htmlspecialchars($categoria['titulo'], ENT_QUOTES, 'UTF-8') ?> - Piñatas-Mel</title>
+    <link rel="stylesheet" href="../../estilos/catalogo.css">
+</head>
+<body>
 
-<div class="container my-5">
+<?php require __DIR__ . '/../../plantilla/header-publico.php'; ?>
 
-    <div class="banner-categoria mb-4 container">
-        <img src="/pinatas-mel/imagenes/<?= htmlspecialchars($catActual['banner']) ?>"
-             alt="<?= htmlspecialchars($catActual['titulo']) ?>"
-             class="img-fluid w-100 banner-categoria-img"
-             loading="eager">
-        <div class="banner-categoria-overlay">
-            <h1 class="banner-categoria-titulo"><?= htmlspecialchars($catActual['titulo']) ?></h1>
-        </div>
-    </div>
+<main class="catalogo-container">
 
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a href="/pinatas-mel/paginas/Usuario/catalogo.php">Catálogo</a></li>
-            <li class="breadcrumb-item active"><?= htmlspecialchars($catActual['titulo']) ?></li>
-        </ol>
+    <nav class="breadcrumb" aria-label="Ruta">
+        <a href="../../index.php">Inicio</a> ›
+        <a href="catalogo.php">Catálogo</a>
+        <?php if (!$noEncontrada): ?>
+            › <span><?= htmlspecialchars($categoria['titulo'], ENT_QUOTES, 'UTF-8') ?></span>
+        <?php endif; ?>
     </nav>
 
-    <h4 class="mb-3 fw-bold">Productos en esta categoría</h4>
-
-    <?php if (empty($productosFiltros)): ?>
-        <div class="alert alert-info text-center">
-            Aún no hay productos en esta categoría. ¡Pronto tendremos novedades!
-        </div>
+    <?php if ($noEncontrada): ?>
+        <h1>Categoría no encontrada</h1>
+        <p><a href="catalogo.php">Volver al catálogo</a></p>
     <?php else: ?>
-        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
-            <?php foreach ($productosFiltros as $p): ?>
-    <div class="col">
-        <a href="categoria.php?tipo=<?= urlencode($tipo) ?>&producto=<?= urlencode($p['slug']) ?>" class="text-decoration-none">
-            <div class="card card-producto h-100 <?= ($productoSlug === $p['slug']) ? 'border-seleccionado' : '' ?>">
-                <div class="card-categoria-img">
-                    <img src="/pinatas-mel/imagenes/<?= htmlspecialchars($p['imagen']) ?>" alt="<?= htmlspecialchars($p['nombre']) ?>" loading="lazy">
-                </div>
-                <div class="card-body text-center">
-                    <h6 class="text-dark fw-bold mb-1"><?= htmlspecialchars($p['nombre']) ?></h6>
-                    <p class="text-muted mb-0">$<?= htmlspecialchars($p['precio']) ?> MXN</p>
-                </div>
+
+        <header class="categoria-hero">
+            <?php if (!empty($categoria['banner'])): ?>
+                <img src="../../imagenes/banners/<?= htmlspecialchars($categoria['banner'], ENT_QUOTES, 'UTF-8') ?>"
+                     alt="<?= htmlspecialchars($categoria['titulo'], ENT_QUOTES, 'UTF-8') ?>"
+                     class="categoria-banner">
+            <?php endif; ?>
+            <h1><?= htmlspecialchars($categoria['titulo'], ENT_QUOTES, 'UTF-8') ?></h1>
+        </header>
+
+        <?php if ($exito): ?>
+            <div class="alert alert-success"><?= htmlspecialchars($exito, ENT_QUOTES, 'UTF-8') ?></div>
+        <?php endif; ?>
+        <?php if (!empty($errores)): ?>
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    <?php foreach ($errores as $e): ?>
+                        <li><?= htmlspecialchars($e, ENT_QUOTES, 'UTF-8') ?></li>
+                    <?php endforeach; ?>
+                </ul>
             </div>
-        </a>
-    </div>
-<?php endforeach; ?>
-        </div>
-    <?php endif; ?>
+        <?php endif; ?>
 
-    <?php if ($productoSel): ?>
-        <div class="card card-producto p-4" id="desglose-producto">
-            <div class="row">
-                <div class="col-md-5 text-center mb-3 mb-md-0">
-                    <img src="/pinatas-mel/imagenes/<?= htmlspecialchars($productoSel['imagen']) ?>"
-                         alt="<?= htmlspecialchars($productoSel['nombre']) ?>"
-                         class="img-fluid" style="max-height: 350px;">
-                </div>
-                <div class="col-md-7">
-                    <h2 class="mb-3"><?= htmlspecialchars($productoSel['nombre']) ?></h2>
-
-                    <p class="fs-4 fw-bold" style="color:#D4005B;">
-                        $<?= htmlspecialchars($productoSel['precio']) ?> MXN
-                    </p>
-
-                    <p><strong>Capacidad de dulces y sorpresa:</strong><br>
-                        <?= htmlspecialchars($productoSel['capacidad']) ?></p>
-
-                    <p><strong>Rendimiento:</strong> <?= htmlspecialchars($productoSel['rendimiento']) ?></p>
-
-                    <p><strong>Materiales de fabricación:</strong><br>
-                        <?= htmlspecialchars($productoSel['estructura']) ?></p>
-
-                    <p><strong>Decoración:</strong><br>
-                        <?= htmlspecialchars($productoSel['decoracion']) ?></p>
-
-                    <div class="d-flex gap-2 mt-3">
-                        <a href="/pinatas-mel/paginas/Usuario/Carrito.php?add=<?= urlencode($productoSlug) ?>"
-                           class="btn btn-primario rounded-pill px-4 py-2">
-                            Añadir al carrito
+        <?php if (empty($productos)): ?>
+            <p class="catalogo-vacio">Aún no hay productos en esta categoría.</p>
+        <?php else: ?>
+            <section class="productos-grid">
+                <?php foreach ($productos as $p): ?>
+                    <article class="producto-card">
+                        <a href="detalle.php?slug=<?= urlencode($p['slug']) ?>" class="producto-card-link">
+                            <div class="producto-card-img">
+                                <img src="../../imagenes/productos/<?= htmlspecialchars($p['imagen'], ENT_QUOTES, 'UTF-8') ?>"
+                                     alt="<?= htmlspecialchars($p['nombre'], ENT_QUOTES, 'UTF-8') ?>">
+                            </div>
+                            <div class="producto-card-body">
+                                <h2><?= htmlspecialchars($p['nombre'], ENT_QUOTES, 'UTF-8') ?></h2>
+                                <?php if (!empty($p['descripcion_corta'])): ?>
+                                    <p class="producto-card-desc"><?= htmlspecialchars($p['descripcion_corta'], ENT_QUOTES, 'UTF-8') ?></p>
+                                <?php endif; ?>
+                                <p class="producto-card-precio">$<?= number_format((float)$p['precio'], 2) ?></p>
+                            </div>
                         </a>
-                        <a href="categoria.php?tipo=<?= urlencode($tipo) ?>"
-                           class="btn btn-outline-secondary rounded-pill px-4 py-2">
-                            Cerrar
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
+                        <form method="POST" action="categoria.php" class="producto-card-acciones">
+                            <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
+                            <input type="hidden" name="accion" value="agregar">
+                            <input type="hidden" name="producto_id" value="<?= (int)$p['id'] ?>">
+                            <input type="hidden" name="slug_actual" value="<?= htmlspecialchars($slug, ENT_QUOTES, 'UTF-8') ?>">
+                            <button type="submit" class="btn btn-primary">Añadir al carrito</button>
+                        </form>
+                    </article>
+                <?php endforeach; ?>
+            </section>
+        <?php endif; ?>
 
-        <script>
-            document.getElementById('desglose-producto')
-                .scrollIntoView({ behavior: 'smooth', block: 'start' });
-        </script>
     <?php endif; ?>
+</main>
 
-</div>
-
-<?php include __DIR__ . '/../../plantilla/footer.php'; ?>
+<?php require __DIR__ . '/../../plantilla/footer.php'; ?>
+</body>
+</html>

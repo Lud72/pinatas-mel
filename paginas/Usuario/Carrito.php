@@ -1,273 +1,178 @@
 <?php
+// /pinatas-mel/paginas/Usuario/Carrito.php
+require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../conexion.php';
+require_once __DIR__ . '/../../funciones/carrito.php';
 
-$pago_exitoso = false;
-
+// --- Acciones POST (actualizar cantidad / eliminar / vaciar) ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $direccion = $_POST['direccion'] ?? '';
-    $telefono = $_POST['tel-personal'] ?? '';
-    $titular = $_POST['nombre-titular'] ?? '';
-    $tarjeta = $_POST['num-tarjeta'] ?? '';
-    
-    $pago_exitoso = true;
+    // CSRF
+    if (empty($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'] ?? '', $_POST['csrf_token'])) {
+        $_SESSION['errores_carrito'] = ['Token inválido. Recarga la página.'];
+        header('Location: Carrito.php');
+        exit;
+    }
+
+    $accion = $_POST['accion'] ?? '';
+
+    try {
+        if ($accion === 'actualizar' && isset($_POST['item_id'], $_POST['cantidad'])) {
+            actualizarCantidad($pdo, (int)$_POST['item_id'], (int)$_POST['cantidad']);
+        } elseif ($accion === 'eliminar' && isset($_POST['item_id'])) {
+            eliminarItem($pdo, (int)$_POST['item_id']);
+        } elseif ($accion === 'vaciar') {
+            vaciarCarrito($pdo);
+        }
+    } catch (PDOException $e) {
+        error_log('[carrito] ' . $e->getMessage(), 3, BASE_PATH . '/logs/errores.log');
+        $_SESSION['errores_carrito'] = ['No pudimos actualizar el carrito. Intenta de nuevo.'];
+    }
+
+    header('Location: Carrito.php');
+    exit;
 }
+
+// --- CSRF ---
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$csrf = $_SESSION['csrf_token'];
+
+// --- Datos ---
+$items    = listarCarrito($pdo);
+$totales  = calcularTotales($items);
+$errores  = $_SESSION['errores_carrito'] ?? [];
+$exito    = $_SESSION['exito_carrito']   ?? false;
+unset($_SESSION['errores_carrito'], $_SESSION['exito_carrito']);
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carrito de Compras - Piñatas-Mel</title>
+    <title>Carrito - Piñatas-Mel</title>
     <link rel="stylesheet" href="../../estilos/carrito.css">
 </head>
 <body>
 
-    <?php 
-        if (file_exists('../../plantilla/header-publico.php')) {
-            include '../../plantilla/header-publico.php';
-        } else {
-    ?>
-    <header class="header">
-        <div class="logo-container">
-            <img src="../../imagenes/logo.png" alt="Piñatas-Mel Logo" class="logo">
-            <span class="slogan">Donde la diversión comienza a palazos.</span>
+<?php require __DIR__ . '/../../plantilla/header-publico.php'; ?>
+
+<main class="carrito-container">
+    <h1 class="carrito-titulo">Tu Carrito</h1>
+
+    <?php if ($exito): ?>
+        <div class="alert alert-success">Carrito actualizado.</div>
+    <?php endif; ?>
+
+    <?php if (!empty($errores)): ?>
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                <?php foreach ($errores as $e): ?>
+                    <li><?= htmlspecialchars($e, ENT_QUOTES, 'UTF-8') ?></li>
+                <?php endforeach; ?>
+            </ul>
         </div>
-        <nav class="nav">
-            <a href="../../index.php">Inicio</a>
-            <a href="nosotros.php">Nosotros</a>
-            <a href="contactos.php">Contáctanos</a>
-            <a href="Carrito.php" class="cart-icon active-cart">🛒</a>
-            <div class="menu-dropdown">
-                <button class="menu-btn">☰</button>
-                <div class="dropdown-content">
-                    <a href="catalogo.php">Catálogo</a>
-                    <a href="personalizado.php">Personalización</a>
-                    <a href="distribuidor.php">Distribuidores</a>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <?php } ?>
+    <?php endif; ?>
 
-    <main class="main-container">
-        
-        <section class="section-title">
-            <h1>Mis Compras</h1>
-        </section>
-
-        <div class="cart-box">
-            <div class="cart-items">
-                <div class="item-row">
-                    <div class="item-info">
-                        <img src="../../imagenes/el_fredo.jpg" alt="Piñata El Fredo" class="item-thumb">
-                        <span class="item-name">Piñata El Fredo</span>
-                    </div>
-                    <div class="item-controls">
-                        <span class="item-price">$500</span>
-                        <div class="qty-control">
-                            <button type="button" onclick="updateQty(this, -1)">−</button>
-                            <input type="text" value="1" readonly>
-                            <button type="button" onclick="updateQty(this, 1)">+</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="item-row">
-                    <div class="item-info">
-                        <img src="../../imagenes/spiderman.jpg" alt="Piñata Spiderman" class="item-thumb">
-                        <span class="item-name">Piñata Spiderman</span>
-                    </div>
-                    <div class="item-controls">
-                        <span class="item-price">$500</span>
-                        <div class="qty-control">
-                            <button type="button" onclick="updateQty(this, -1)">−</button>
-                            <input type="text" value="1" readonly>
-                            <button type="button" onclick="updateQty(this, 1)">+</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="item-row">
-                    <div class="item-info">
-                        <img src="../../imagenes/Capitan_America.jpg" alt="Piñata Capitán América" class="item-thumb">
-                        <span class="item-name">Piñata Capitán América</span>
-                    </div>
-                    <div class="item-controls">
-                        <span class="item-price">$500</span>
-                        <div class="qty-control">
-                            <button type="button" onclick="updateQty(this, -1)">−</button>
-                            <input type="text" value="1" readonly>
-                            <button type="button" onclick="updateQty(this, 1)">+</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="item-row">
-                    <div class="item-info">
-                        <img src="../../imagenes/Mexa_cactus.jpg" alt="Piñata Mexa Cactus" class="item-thumb">
-                        <span class="item-name">Piñata Mexa Cactus</span>
-                    </div>
-                    <div class="item-controls">
-                        <span class="item-price">$500</span>
-                        <div class="qty-control">
-                            <button type="button" onclick="updateQty(this, -1)">−</button>
-                            <input type="text" value="1" readonly>
-                            <button type="button" onclick="updateQty(this, 1)">+</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="item-row">
-                    <div class="item-info">
-                        <img src="../../imagenes/Dino.jpg" alt="Piñata Dino" class="item-thumb">
-                        <span class="item-name">Piñata Dino</span>
-                    </div>
-                    <div class="item-controls">
-                        <span class="item-price">$500</span>
-                        <div class="qty-control">
-                            <button type="button" onclick="updateQty(this, -1)">−</button>
-                            <input type="text" value="1" readonly>
-                            <button type="button" onclick="updateQty(this, 1)">+</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="cart-total">
-                <span>TOTAL:$2500</span>
-            </div>
+    <?php if (empty($items)): ?>
+        <div class="carrito-vacio">
+            <p>Tu carrito está vacío.</p>
+            <a href="catalogo.php" class="btn btn-primary">Ver catálogo</a>
+            <a href="personalizado.php" class="btn btn-secondary">Crear piñata personalizada</a>
         </div>
+    <?php else: ?>
+        <div class="carrito-grid">
+            <section class="carrito-items">
+                <?php foreach ($items as $it):
+                    $esPersonalizado = !empty($it['pedido_personalizado_id']);
+                    $precio = (float)$it['precio_unitario'];
+                    $porCotizar = $precio <= 0;
+                    $imagen = $esPersonalizado
+                        ? ($it['referencia_imagen'] ? UPLOADS_REF_URL . $it['referencia_imagen'] : '../../imagenes/placeholder.png')
+                        : '../../imagenes/productos/' . $it['producto_imagen'];
+                ?>
+                <article class="carrito-item">
+                    <img src="<?= htmlspecialchars($imagen, ENT_QUOTES, 'UTF-8') ?>"
+                         alt="<?= htmlspecialchars($it['nombre'], ENT_QUOTES, 'UTF-8') ?>"
+                         class="carrito-item-img">
 
-        <div id="btn-pagar-container" class="action-container">
-            <button type="button" class="btn-main" onclick="goToStep('personal')">Pagar</button>
-        </div>
+                    <div class="carrito-item-info">
+                        <h3><?= htmlspecialchars($it['nombre'], ENT_QUOTES, 'UTF-8') ?></h3>
 
-        <form id="checkout-form" action="Carrito.php" method="POST">
-            
-            <!-- Paso 1: Datos Personales -->
-            <div id="step-personal" class="sub-card hidden">
-                <h2>Datos Personales</h2>
-                <div class="form-group">
-                    <label for="direccion">Dirección</label>
-                    <input type="text" id="direccion" name="direccion" placeholder="Ingresa una dirección">
-                </div>
-                <div class="form-group">
-                    <label for="tel-personal">Teléfono</label>
-                    <input type="tel" id="tel-personal" name="tel-personal" placeholder="Ingresa un número de teléfono">
-                </div>
-                <div class="button-group right-align">
-                    <button type="button" class="btn-main" onclick="validatePersonal()">Siguiente</button>
-                </div>
-            </div>
+                        <?php if ($esPersonalizado): ?>
+                            <p class="carrito-item-detalle">
+                                <span class="badge">Personalizada</span>
+                                <?php if ($it['tamano_cm']): ?> · <?= (int)$it['tamano_cm'] ?> cm<?php endif; ?>
+                                <?php if ($it['tipo_apertura']): ?> · <?= htmlspecialchars($it['tipo_apertura'], ENT_QUOTES, 'UTF-8') ?><?php endif; ?>
+                            </p>
+                            <p class="carrito-item-detalle">
+                                <strong>Estado:</strong>
+                                <?= htmlspecialchars(ucfirst(str_replace('_', ' ', $it['pp_estado'] ?? 'pendiente')), ENT_QUOTES, 'UTF-8') ?>
+                            </p>
+                        <?php endif; ?>
 
-            <div id="step-payment" class="sub-card hidden">
-                <h2>Datos de Pago</h2>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="nombre-titular">Nombre del Titular</label>
-                        <input type="text" id="nombre-titular" name="nombre-titular" placeholder="Ingresa un Nombre">
+                        <p class="carrito-item-precio">
+                            <?php if ($porCotizar): ?>
+                                <em>Precio por cotizar</em>
+                            <?php else: ?>
+                                $<?= number_format($precio, 2) ?> c/u
+                            <?php endif; ?>
+                        </p>
                     </div>
-                    <div class="form-group">
-                        <label for="cvv">Código de Seguridad</label>
-                        <input type="text" id="cvv" name="cvv" placeholder="">
+
+                    <div class="carrito-item-cantidad">
+                        <form method="POST" action="Carrito.php" class="cantidad-form">
+                            <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
+                            <input type="hidden" name="accion" value="actualizar">
+                            <input type="hidden" name="item_id" value="<?= (int)$it['id'] ?>">
+                            <button type="submit" name="cantidad" value="<?= (int)$it['cantidad'] - 1 ?>" class="btn-cant">−</button>
+                            <span class="cantidad-valor"><?= (int)$it['cantidad'] ?></span>
+                            <button type="submit" name="cantidad" value="<?= (int)$it['cantidad'] + 1 ?>" class="btn-cant">+</button>
+                        </form>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label for="num-tarjeta">Número de Tarjeta</label>
-                    <input type="text" id="num-tarjeta" name="num-tarjeta" placeholder="Ingresa el número de tu tarjeta">
-                </div>
-
-                <div class="form-group">
-                    <label>Fecha de expiración</label>
-                    <div class="select-row">
-                        <select name="mes_exp">
-                            <option value="01">01-Enero</option>
-                            <option value="02">02-Febrero</option>
-                            <option value="03">03-Marzo</option>
-                            <option value="04">04-Abril</option>
-                        </select>
-                        <select name="anio_exp">
-                            <option value="2021">2021</option>
-                            <option value="2022">2022</option>
-                            <option value="2023">2023</option>
-                            <option value="2024">2024</option>
-                        </select>
+                    <div class="carrito-item-subtotal">
+                        <?php if ($porCotizar): ?>
+                            —
+                        <?php else: ?>
+                            $<?= number_format($precio * (int)$it['cantidad'], 2) ?>
+                        <?php endif; ?>
                     </div>
-                </div>
 
-                <div class="button-group space-between">
-                    <button type="button" class="btn-main secondary" onclick="goToStep('personal')">Regresar</button>
-                    <button type="submit" class="btn-main">Pagar</button>
-                </div>
-            </div>
+                    <form method="POST" action="Carrito.php" class="carrito-item-eliminar">
+                        <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
+                        <input type="hidden" name="accion" value="eliminar">
+                        <input type="hidden" name="item_id" value="<?= (int)$it['id'] ?>">
+                        <button type="submit" class="btn-eliminar" aria-label="Eliminar">✕</button>
+                    </form>
+                </article>
+                <?php endforeach; ?>
 
-        </form>
+                <form method="POST" action="Carrito.php" class="carrito-vaciar">
+                    <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
+                    <input type="hidden" name="accion" value="vaciar">
+                    <button type="submit" class="btn btn-link">Vaciar carrito</button>
+                </form>
+            </section>
 
-        <div id="step-success" class="success-banner <?php echo $pago_exitoso ? '' : 'hidden'; ?>">
-            <p>¡Pago Exitoso!</p>
+            <aside class="carrito-resumen">
+                <h2>Resumen</h2>
+                <p><span>Unidades:</span> <strong><?= $totales['unidades'] ?></strong></p>
+                <p><span>Subtotal:</span> <strong>$<?= number_format($totales['subtotal'], 2) ?></strong></p>
+
+                <?php if ($totales['hay_por_cotizar']): ?>
+                    <p class="aviso-cotizar">
+                        Tienes piñatas personalizadas que se cotizarán antes de confirmar el pedido.
+                    </p>
+                <?php endif; ?>
+
+                <a href="checkout.php" class="btn btn-primary btn-block">Continuar con el pedido</a>
+                <a href="catalogo.php" class="btn btn-secondary btn-block">Seguir comprando</a>
+            </aside>
         </div>
+    <?php endif; ?>
+</main>
 
-    </main>
-
-    <?php 
-        if (file_exists('../../plantilla/footer.php')) {
-            include '../../plantilla/footer.php';
-        } else {
-    ?>
-    <footer class="footer">
-        <div class="footer-social">
-            <span>Síguenos</span>
-            <div class="social-icons">
-                <a href="#">Facebook</a>
-                <a href="#">Instagram</a>
-                <a href="#">X</a>
-            </div>
-        </div>
-        <div class="footer-copy">
-            &copy; <?php echo date('Y'); ?> Piñatas-Mel
-        </div>
-    </footer>
-    <?php } ?>
-
-    <script>
-        <?php if ($pago_exitoso): ?>
-            document.addEventListener("DOMContentLoaded", function() {
-                document.getElementById('btn-pagar-container').classList.add('hidden');
-                document.getElementById('step-success').classList.remove('hidden');
-            });
-        <?php endif; ?>
-
-        function goToStep(step) {
-            document.getElementById('btn-pagar-container').classList.add('hidden');
-            document.getElementById('step-personal').classList.add('hidden');
-            document.getElementById('step-payment').classList.add('hidden');
-            document.getElementById('step-success').classList.add('hidden');
-
-            if (step === 'personal') {
-                document.getElementById('step-personal').classList.remove('hidden');
-            } else if (step === 'payment') {
-                document.getElementById('step-payment').classList.remove('hidden');
-            } else if (step === 'success') {
-                document.getElementById('step-success').classList.remove('hidden');
-            }
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }
-
-        function validatePersonal() {
-            let dir = document.getElementById('direccion').value;
-            let tel = document.getElementById('tel-personal').value;
-            if(dir.trim() === '' || tel.trim() === '') {
-                alert('Por favor completa los datos personales.');
-                return;
-            }
-            goToStep('payment');
-        }
-
-        function updateQty(btn, change) {
-            let input = btn.parentElement.querySelector('input');
-            let val = parseInt(input.value) + change;
-            if (val >= 1) input.value = val;
-        }
-    </script>
+<?php require __DIR__ . '/../../plantilla/footer.php'; ?>
 </body>
 </html>

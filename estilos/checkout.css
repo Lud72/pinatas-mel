@@ -1,0 +1,81 @@
+.checkout-container {
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+.checkout-titulo { color: #333; margin-bottom: 1.5rem; }
+
+.checkout-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 2rem;
+}
+@media (max-width: 768px) { .checkout-grid { grid-template-columns: 1fr; } }
+
+.checkout-form {
+    background: #fff;
+    border: 2px solid #A3D8C5;
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+.checkout-form h2 { font-size: 1.1rem; color: #333; margin: 1rem 0 .75rem; }
+.checkout-form h2:first-child { margin-top: 0; }
+
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; font-weight: 600; margin-bottom: .3rem; color: #333; }
+.form-group input {
+    width: 100%; padding: .55rem .75rem;
+    border: 2px solid #A3D8C5; border-radius: 10px;
+    font-size: 1rem;
+}
+.form-group input:focus { outline: none; border-color: #D4005B; }
+
+.metodos-pago { display: grid; gap: .5rem; margin-bottom: 1rem; }
+.metodo-card {
+    display: flex; align-items: center; gap: .6rem;
+    padding: .75rem 1rem;
+    border: 2px solid #A3D8C5;
+    border-radius: 10px;
+    cursor: pointer;
+    background: #fff;
+    transition: background .2s ease;
+}
+.metodo-card:hover { background: #f0faf6; }
+.metodo-card input:checked ~ span { font-weight: 600; color: #D4005B; }
+
+.checkbox-container {
+    display: flex; align-items: center; gap: .5rem;
+    cursor: pointer; margin-bottom: 1rem;
+}
+
+.btn-block { display: block; width: 100%; text-align: center; margin-top: 1rem; }
+
+.checkout-resumen {
+    background: #fff;
+    border: 2px solid #A3D8C5;
+    border-radius: 12px;
+    padding: 1.5rem;
+    height: fit-content;
+}
+.checkout-resumen h2 { margin-top: 0; font-size: 1.15rem; }
+.resumen-linea {
+    display: flex; justify-content: space-between;
+    font-size: .92rem; margin: .4rem 0;
+}
+.checkout-resumen hr { border: none; border-top: 1px solid #eee; margin: 1rem 0; }
+.aviso-cotizar {
+    background: #fff3cd; color: #664d03;
+    padding: .6rem .8rem; border-radius: 8px;
+    font-size: .85rem; margin: .75rem 0 0;
+}
+
+.checkout-gracias {
+    max-width: 600px; margin: 3rem auto;
+    text-align: center;
+    background: #fff;
+    border: 2px solid #A3D8C5;
+    border-radius: 15px;
+    padding: 2.5rem 1.5rem;
+}
+.checkout-gracias h1 { color: #D4005B; margin-top: 0; }
+.checkout-gracias .btn { margin-top: 1rem; }
