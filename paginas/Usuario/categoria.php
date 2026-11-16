@@ -65,13 +65,13 @@ $productos = [
 ];
 
 $categorias = [
-    'estrellas'    => ['titulo' => 'Tradicionales de Estrellas', 'banner' => 'franja.png',    'icono' => 'estrella.png'],
-    'personajes'   => ['titulo' => 'Personajes y Cultura Pop',   'banner' => 'franja.png',   'icono' => 'bob.png'],
-    'numeros'      => ['titulo' => 'Números y Letras',           'banner' => 'franja.png',      'icono' => 'numero1.png'],
-    'animales'     => ['titulo' => 'Animales',                   'banner' => 'franja.png',     'icono' => 'caballo.png'],
-    'geometricas'  => ['titulo' => 'Formas Geométricas',         'banner' => 'franja.png',  'icono' => 'espejo.png'],
-    'comida'       => ['titulo' => 'Objetos, Comida',            'banner' => 'franja.png',       'icono' => 'hamburguesa.png'],
-    'jalon'        => ['titulo' => 'Piñatas de "Jalón"',         'banner' => 'franja.png',        'icono' => 'stitch.png'],
+    'estrellas'    => ['titulo' => 'Tradicionales de Estrellas', 'banner' => 'franja.png', 'icono' => 'estrella.png'],
+    'personajes'   => ['titulo' => 'Personajes y Cultura Pop',   'banner' => 'franja.png', 'icono' => 'bob.png'],
+    'numeros'      => ['titulo' => 'Números y Letras',           'banner' => 'franja.png', 'icono' => 'numero1.png'],
+    'animales'     => ['titulo' => 'Animales',                   'banner' => 'franja.png', 'icono' => 'caballo.png'],
+    'geometricas'  => ['titulo' => 'Formas Geométricas',         'banner' => 'franja.png', 'icono' => 'espejo.png'],
+    'comida'       => ['titulo' => 'Objetos, Comida',            'banner' => 'franja.png', 'icono' => 'hamburguesa.png'],
+    'jalon'        => ['titulo' => 'Piñatas de "Jalón"',         'banner' => 'franja.png', 'icono' => 'stitch.png'],
     'humoristicas' => ['titulo' => 'Humorísticas',               'banner' => 'franja.png', 'icono' => 'perro.png'],
 ];
 
@@ -91,7 +91,7 @@ $productoSel      = ($productoSlug && isset($productos[$productoSlug])) ? $produ
 <div class="container my-5">
 
     <div class="banner-categoria mb-4 container">
-        <img src="/pinatas-mel/imagenes/<?= htmlspecialchars($catActual['banner']) ?>"
+        <img src="<?= BASE_URL ?>/imagenes/<?= htmlspecialchars($catActual['banner']) ?>"
              alt="<?= htmlspecialchars($catActual['titulo']) ?>"
              class="img-fluid w-100 banner-categoria-img"
              loading="eager">
@@ -103,7 +103,7 @@ $productoSel      = ($productoSlug && isset($productos[$productoSlug])) ? $produ
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a href="/pinatas-mel/paginas/Usuario/catalogo.php">Catálogo</a></li>
+            <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/paginas/Usuario/catalogo.php">Catálogo</a></li>
             <li class="breadcrumb-item active"><?= htmlspecialchars($catActual['titulo']) ?></li>
         </ol>
     </nav>
@@ -122,7 +122,7 @@ $productoSel      = ($productoSlug && isset($productos[$productoSlug])) ? $produ
                        class="text-decoration-none">
                         <div class="card card-producto h-100 <?= ($productoSlug === $slug) ? 'border-seleccionado' : '' ?>">
                             <div class="card-categoria-img">
-                                <img src="/pinatas-mel/imagenes/<?= htmlspecialchars($p['imagen']) ?>"
+                                <img src="<?= BASE_URL ?>/imagenes/<?= htmlspecialchars($p['imagen']) ?>"
                                      alt="<?= htmlspecialchars($p['nombre']) ?>"
                                      loading="lazy">
                             </div>
@@ -141,7 +141,7 @@ $productoSel      = ($productoSlug && isset($productos[$productoSlug])) ? $produ
         <div class="card card-producto p-4" id="desglose-producto">
             <div class="row">
                 <div class="col-md-5 text-center mb-3 mb-md-0">
-                    <img src="/pinatas-mel/imagenes/<?= htmlspecialchars($productoSel['imagen']) ?>"
+                    <img src="<?= BASE_URL ?>/imagenes/<?= htmlspecialchars($productoSel['imagen']) ?>"
                          alt="<?= htmlspecialchars($productoSel['nombre']) ?>"
                          class="img-fluid" style="max-height: 350px;">
                 </div>
@@ -164,7 +164,7 @@ $productoSel      = ($productoSlug && isset($productos[$productoSlug])) ? $produ
                         <?= htmlspecialchars($productoSel['decoracion']) ?></p>
 
                     <div class="d-flex gap-2 mt-3">
-                        <a href="/pinatas-mel/paginas/Usuario/Carrito.php?add=<?= urlencode($productoSlug) ?>"
+                        <a href="<?= BASE_URL ?>/paginas/Usuario/Carrito.php?add=<?= urlencode($productoSlug) ?>"
                            class="btn btn-primario rounded-pill px-4 py-2">
                             Añadir al carrito
                         </a>

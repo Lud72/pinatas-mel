@@ -15,13 +15,11 @@ $categorias = [
 
 <div class="container my-5">
 
-
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="mb-1">Catálogo - Administrador</h2>
             <p class="text-muted mb-0">Selecciona una categoría para gestionar sus productos</p>
         </div>
-        <!-- Botón que llama a la función JS para mostrar el formulario -->
         <button onclick="mostrarFormulario()" 
                 class="btn fw-bold rounded-pill px-4 shadow-sm text-dark" 
                 style="background-color: #F2B134; border: none;">
@@ -35,7 +33,7 @@ $categorias = [
                 <a href="productos_A.php?categoria=<?= urlencode($c['slug']) ?>" class="text-decoration-none">
                     <div class="card h-100 card-categoria shadow-sm">
                         <div class="card-categoria-img">
-                            <img src="/pinatas-mel/imagenes/<?= htmlspecialchars($c['icono']) ?>" 
+                            <img src="<?= BASE_URL ?>/imagenes/<?= htmlspecialchars($c['icono']) ?>" 
                                  alt="<?= htmlspecialchars($c['titulo']) ?>"
                                  loading="lazy">
                         </div>
@@ -51,9 +49,7 @@ $categorias = [
 
     <div class="row justify-content-center mt-4 d-none" id="contenedor-formulario">
         <div class="col-md-8 col-lg-6">
-            
             <div class="card shadow border-0" style="border: 3px solid #A3D8C5 !important; border-radius: 15px;">
-                
                 <div class="card-header bg-white text-center pt-4 border-0 d-flex justify-content-between align-items-center">
                     <h4 class="fw-bold mb-0 w-100">Agregar Nueva Categoría</h4>
                     <button type="button" class="btn-close" onclick="ocultarFormulario()" aria-label="Cerrar"></button>
@@ -61,7 +57,6 @@ $categorias = [
 
                 <div class="card-body p-4">
                     <form action="" method="POST" enctype="multipart/form-data">
-                        
                         <div class="mb-3">
                             <label class="form-label text-muted small fw-bold">Nombre</label>
                             <input type="text" name="titulo" class="form-control" 
@@ -81,11 +76,9 @@ $categorias = [
                             <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="ocultarFormulario()">Cancelar</button>
                             <button type="submit" class="btn btn-primario rounded-pill px-5 fw-bold">Crear</button>
                         </div>
-
                     </form>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -94,9 +87,7 @@ $categorias = [
 <script>
 function mostrarFormulario() {
     const contenedor = document.getElementById('contenedor-formulario');
-    
     contenedor.classList.remove('d-none');
-    
     setTimeout(() => {
         contenedor.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 50);
@@ -104,11 +95,8 @@ function mostrarFormulario() {
 
 function ocultarFormulario() {
     const contenedor = document.getElementById('contenedor-formulario');
-    
     contenedor.classList.add('d-none');
-    
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    
     document.querySelector('#contenedor-formulario form').reset();
     document.getElementById('fileName').innerText = 'Agregar una foto';
 }

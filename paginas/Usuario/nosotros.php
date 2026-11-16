@@ -2,7 +2,7 @@
 include __DIR__ . '/../../plantilla/header-publico.php';
 ?>
 
-<link rel="stylesheet" type="text/css" href="../../estilos/nosotros.css">
+<link rel="stylesheet" type="text/css" href="<?= BASE_URL ?>/estilos/nosotros.css">
 
 <section class="cardtitulo">Sobre Nosotros</section>
 
@@ -11,13 +11,13 @@ include __DIR__ . '/../../plantilla/header-publico.php';
     <div class="fila-superior">
         <div class="columna-zootopia">
             <div class="verde">
-                <img src="../../imagenes/zoot.png" alt="zootopia">
+                <img src="<?= BASE_URL ?>/imagenes/zoot.png" alt="zootopia">
             </div>
             <p>En Piñatas-Mel, nos apasiona mantener viva la magia y la alegría de las celebraciones mexicanas. Lo que comenzó como un trabajo artesanal desde casa, hecho con dedicación y amor por el detalle, se ha transformado en un proyecto comprometido con llevar la mejor calidad a cada fiesta, posada y cumpleaños.</p>
         </div>
 
         <div class="imagen-libre">
-            <img src="../../imagenes/creep.png" alt="creeper">
+            <img src="<?= BASE_URL ?>/imagenes/creep.png" alt="creeper">
         </div>
     </div>
 

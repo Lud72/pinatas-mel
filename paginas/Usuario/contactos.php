@@ -1,24 +1,20 @@
 <?php 
 include __DIR__ . '/../../plantilla/header-publico.php'; 
 ?>
-<link rel="stylesheet" href="../../estilos/contactoestilo.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>/estilos/contactoestilo.css">
 
 <div class="container my-5">
     
-  
     <div class="row text-center mb-5">
         
         <!-- Stitch -->
         <div class="col-md-6 mb-4">
-            <img src="/pinatas-mel/imagenes/stich.png" alt="Stitch" class="img-piinata">
+            <img src="<?= BASE_URL ?>/imagenes/stich.png" alt="Stitch" class="img-piinata">
         </div>
 
-   
         <div class="col-md-6 mb-4">
             <div class="caja-borde">
-               
-                <img src="/pinatas-mel/imagenes/ubicacion.png" alt="Ubicación" class="icono-img">
-                
+                <img src="<?= BASE_URL ?>/imagenes/ubicacion.png" alt="Ubicación" class="icono-img">
                 <p>
                     Av. San Jonathan<br>
                     Fraccionamiento H2O, Col. Morelos<br>
@@ -28,12 +24,9 @@ include __DIR__ . '/../../plantilla/header-publico.php';
             </div>
         </div>
 
-      
         <div class="col-md-6 mb-4">
             <div class="caja-borde">
-    
-                <img src="/pinatas-mel/imagenes/whatsapp.png" alt="Teléfono" class="icono-img">
-                
+                <img src="<?= BASE_URL ?>/imagenes/whatsapp.png" alt="Teléfono" class="icono-img">
                 <p>
                     Número de teléfono<br>
                     <strong>729 120 6121</strong>
@@ -42,10 +35,9 @@ include __DIR__ . '/../../plantilla/header-publico.php';
         </div>
 
         <div class="col-md-6 mb-4">
-            <img src="/pinatas-mel/imagenes/alicia.png" alt="Alicia" class="img-piinata">
+            <img src="<?= BASE_URL ?>/imagenes/alicia.png" alt="Alicia" class="img-piinata">
         </div>
     </div>
-
 
     <div class="text-center mb-5 banner-horario">
         <h4>Horario de atención</h4>

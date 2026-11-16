@@ -159,7 +159,7 @@ $productosExistentes = [
             <p class="fs-5 mb-0 text-white-50">Administra los productos de esta categoría. Agrega, edita o elimina los diseños disponibles.</p>
         </div>
         <div class="col-md-5 seccion-1-imagen">
-            <img src="/pinatas-mel/imagenes/hamburguesa.png" alt="Imagen de categoría">
+            <img src="<?= BASE_URL ?>/imagenes/hamburguesa.png" alt="Imagen de categoría">
         </div>
     </div>
 
@@ -233,7 +233,7 @@ $productosExistentes = [
             <div class="col">
                 <div class="card card-carrusel h-100">
                     <div class="card-carrusel-img">
-                        <img src="/pinatas-mel/imagenes/<?= $p['imagen'] ?>" alt="<?= $p['nombre'] ?>">
+                        <img src="<?= BASE_URL ?>/imagenes/<?= $p['imagen'] ?>" alt="<?= $p['nombre'] ?>">
                     </div>
                     <div class="card-body p-3 text-center">
                         <h6 class="fw-bold text-dark mb-1"><?= $p['nombre'] ?></h6>
@@ -257,7 +257,7 @@ $productosExistentes = [
         <div class="row">
             <!-- Imagen del producto -->
             <div class="col-md-4 text-center mb-4 mb-md-0">
-                <img src="/pinatas-mel/imagenes/hamburguesa.png" alt="Piñata de Hamburguesa" class="img-fluid" style="max-height: 250px; object-fit: contain;">
+                <img src="<?= BASE_URL ?>/imagenes/hamburguesa.png" alt="Piñata de Hamburguesa" class="img-fluid" style="max-height: 250px; object-fit: contain;">
             </div>
             
             <div class="col-md-8">
