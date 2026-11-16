@@ -1,16 +1,19 @@
 <?php 
 include __DIR__ . '/../../plantilla/header-publico.php'; 
 
-$categorias = [
-    ['estrella.png',    'Piñatas de estrellas',   'Tradicionales de Estrellas', BASE_URL . '/paginas/Usuario/categoria.php?tipo=estrellas'],
-    ['bob.png',         'Piñatas de personajes',  'Personajes y Cultura Pop',   BASE_URL . '/paginas/Usuario/categoria.php?tipo=personajes'],
-    ['numero1.png',     'Piñatas de números',     'Números y Letras',           BASE_URL . '/paginas/Usuario/categoria.php?tipo=numeros'],
-    ['caballo.png',     'Piñatas de animales',    'Animales',                   BASE_URL . '/paginas/Usuario/categoria.php?tipo=animales'],
-    ['espejo.png',      'Piñatas geométricas',    'Formas Geométricas',         BASE_URL . '/paginas/Usuario/categoria.php?tipo=geometricas'],
-    ['hamburguesa.png', 'Piñatas de comida',      'Objetos, Comida',            BASE_URL . '/paginas/Usuario/categoria.php?tipo=comida'],
-    ['stitch.png',      'Piñatas de jalón',       'Piñatas de "Jalón"',         BASE_URL . '/paginas/Usuario/categoria.php?tipo=jalon'],
-    ['perro.png',       'Piñatas humorísticas',   'Humorísticas',               BASE_URL . '/paginas/Usuario/categoria.php?tipo=humoristicas'],
-];
+// TODO: reemplazar por consulta SQL cuando exista BD.
+$categoriasData = require __DIR__ . '/../../datos/categorias.php';
+
+// Armar el array que usa la vista: [imagen, alt, titulo, link]
+$categorias = [];
+foreach ($categoriasData as $slug => $c) {
+    $categorias[] = [
+        $c['icono'],
+        $c['titulo'],
+        $c['titulo'],
+        BASE_URL . '/paginas/Usuario/categoria.php?tipo=' . urlencode($slug),
+    ];
+}
 ?>
 
 <div class="container my-5">

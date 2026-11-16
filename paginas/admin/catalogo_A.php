@@ -1,16 +1,8 @@
 <?php 
 include __DIR__ . '/../../plantilla/header-admin.php'; 
 
-$categorias = [
-    ['id' => 1, 'slug' => 'estrellas',    'titulo' => 'Tradicionales de Estrellas', 'icono' => 'estrella.png',    'activa' => 1, 'productos' => 12],
-    ['id' => 2, 'slug' => 'personajes',   'titulo' => 'Personajes y Cultura Pop',   'icono' => 'bob.png',         'activa' => 1, 'productos' => 8],
-    ['id' => 3, 'slug' => 'numeros',      'titulo' => 'Números y Letras',           'icono' => 'numero1.png',     'activa' => 1, 'productos' => 6],
-    ['id' => 4, 'slug' => 'animales',     'titulo' => 'Animales',                   'icono' => 'caballo.png',     'activa' => 1, 'productos' => 5],
-    ['id' => 5, 'slug' => 'geometricas',  'titulo' => 'Formas Geométricas',         'icono' => 'espejo.png',      'activa' => 1, 'productos' => 4],
-    ['id' => 6, 'slug' => 'comida',       'titulo' => 'Objetos, Comida',            'icono' => 'hamburguesa.png', 'activa' => 1, 'productos' => 6],
-    ['id' => 7, 'slug' => 'jalon',        'titulo' => 'Piñatas de "Jalón"',         'icono' => 'stitch.png',      'activa' => 1, 'productos' => 3],
-    ['id' => 8, 'slug' => 'humoristicas', 'titulo' => 'Humorísticas',               'icono' => 'perro.png',       'activa' => 1, 'productos' => 2],
-];
+// TODO: reemplazar por consulta SQL cuando exista BD.
+$categorias = require __DIR__ . '/../../datos/categorias.php';
 ?>
 
 <div class="container my-5">
@@ -28,9 +20,9 @@ $categorias = [
     </div>
 
     <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
-        <?php foreach ($categorias as $c): ?>
+        <?php foreach ($categorias as $slug => $c): ?>
             <div class="col">
-                <a href="productos_A.php?categoria=<?= urlencode($c['slug']) ?>" class="text-decoration-none">
+                <a href="productos_A.php?categoria=<?= urlencode($slug) ?>" class="text-decoration-none">
                     <div class="card h-100 card-categoria shadow-sm">
                         <div class="card-categoria-img">
                             <img src="<?= BASE_URL ?>/imagenes/<?= htmlspecialchars($c['icono']) ?>" 

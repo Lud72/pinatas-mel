@@ -1,33 +1,26 @@
 <?php 
 include __DIR__ . '/../../plantilla/header-admin.php'; 
 
-$catSlug = $_GET['categoria'] ?? 'comida';
-$catTitulo = ucfirst($catSlug); 
+// TODO: reemplazar por consultas SQL cuando exista BD.
+$todasLasCategorias = require __DIR__ . '/../../datos/categorias.php';
+$todosLosProductos   = require __DIR__ . '/../../datos/productos.php';
 
-$productosExistentes = [
-    [
-        'id' => 1,
-        'nombre' => 'Piñata de Fresa',
-        'imagen' => 'fresa.png',
-        'precio' => 450,
-        'descripcion_corta' => 'Diseñada con un rojo brillante de papel china',
-        'capacidad' => 'Capacidad estimada: 2 a 4 kg de dulces surtidos.',
-        'rendimiento' => '5 a 20 niños',
-        'estructura' => 'Estructura: Cartón y papel periódico.',
-        'decoracion' => 'Decoración: Papel china rojo brillante con detalles verdes para las hojas.'
-    ],
-    [
-        'id' => 2,
-        'nombre' => 'Piñata de Hamburguesa',
-        'imagen' => 'hamburguesa.png',
-        'precio' => 500,
-        'descripcion_corta' => 'Hamburguesa clásica con queso y lechuga',
-        'capacidad' => 'Capacidad estimada: 3 a 5 kg de dulces surtidos (o juguetes pequeños y confeti).',
-        'rendimiento' => '5 a 25 niños',
-        'estructura' => 'Estructura: Cartón de alta resistencia y papel periódico/cartonería tradicional.',
-        'decoracion' => 'Decoración: Papel china y crepé picado/plisado en capas de colores vivos.'
-    ]
-];
+$catSlug = $_GET['categoria'] ?? 'comida';
+
+if (!isset($todasLasCategorias[$catSlug])) {
+    header('Location: catalogo_A.php');
+    exit;
+}
+
+$catTitulo = $todasLasCategorias[$catSlug]['titulo'];
+
+// Filtrar productos de esta categoría
+$productosExistentes = [];
+foreach ($todosLosProductos as $slug => $p) {
+    if ($p['categoria'] === $catSlug) {
+        $productosExistentes[$slug] = $p;
+    }
+}
 ?>
 
 <style>
@@ -237,7 +230,7 @@ $productosExistentes = [
                     </div>
                     <div class="card-body p-3 text-center">
                         <h6 class="fw-bold text-dark mb-1"><?= $p['nombre'] ?></h6>
-                        <p class="text-muted small mb-0"><?= $p['descripcion_corta'] ?></p>
+                        <p class="text-muted small mb-0"><?= htmlspecialchars($p['capacidad']) ?></p>
                     </div>
                 </div>
             </div>
