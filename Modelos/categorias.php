@@ -26,3 +26,71 @@ function obtenerCategoriaPorSlug(PDO $pdo, string $slug): ?array
     $cat = $stmt->fetch();
     return $cat ?: null;
 }
+
+function crearCategoria(PDO $pdo, array $datos): int
+{
+    $stmt = $pdo->prepare("
+        INSERT INTO categorias (slug, titulo, icono, banner, activa)
+        VALUES (:slug, :titulo, :icono, :banner, :activa)
+    ");
+    $stmt->execute([
+        'slug'   => $datos['slug'],
+        'titulo' => $datos['titulo'],
+        'icono'  => $datos['icono'],
+        'banner' => $datos['banner'] ?? 'franja.png',
+        'activa' => $datos['activa'] ?? 1,
+    ]);
+    return (int)$pdo->lastInsertId();
+}
+
+function actualizarCategoria(PDO $pdo, int $id, array $datos): void
+{
+    $stmt = $pdo->prepare("
+        UPDATE categorias
+        SET titulo = :titulo,
+            icono  = :icono,
+            activa = :activa
+        WHERE id = :id
+    ");
+    $stmt->execute([
+        'titulo' => $datos['titulo'],
+        'icono'  => $datos['icono'],
+        'activa' => $datos['activa'] ?? 1,
+        'id'     => $id,
+    ]);
+}
+
+function eliminarCategoria(PDO $pdo, int $id): void
+{
+    $stmt = $pdo->prepare("DELETE FROM categorias WHERE id = :id");
+    $stmt->execute(['id' => $id]);
+}
+
+/**
+ * Cuenta productos por categoría (una sola query, eficiente).
+ * Devuelve [categoria_id => total].
+ */
+function contarProductosPorCategoria(PDO $pdo): array
+{
+    $stmt = $pdo->query("
+        SELECT categoria_id, COUNT(*) AS total
+        FROM productos
+        GROUP BY categoria_id
+    ");
+    $resultado = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $resultado[(int)$row['categoria_id']] = (int)$row['total'];
+    }
+    return $resultado;
+}
+
+/**
+ * Genera un slug a partir de un texto.
+ */
+function generarSlug(string $texto): string
+{
+    $texto = strtolower(trim($texto));
+    $texto = iconv('UTF-8', 'ASCII//TRANSLIT', $texto);
+    $texto = preg_replace('/[^a-z0-9]+/', '-', $texto);
+    return trim($texto, '-');
+}

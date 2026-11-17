@@ -3,9 +3,6 @@
  * Consultas relacionadas con pedidos.
  */
 
-/**
- * Devuelve pedidos, opcionalmente filtrados por estado.
- */
 function obtenerPedidos(PDO $pdo, ?string $estado = null): array
 {
     $sql = "SELECT id, folio, cliente_nombre, cliente_telefono, cliente_direccion,
@@ -25,9 +22,6 @@ function obtenerPedidos(PDO $pdo, ?string $estado = null): array
     return $stmt->fetchAll();
 }
 
-/**
- * Devuelve un pedido con sus items.
- */
 function obtenerPedidoConItems(PDO $pdo, int $pedidoId): ?array
 {
     $stmt = $pdo->prepare("SELECT * FROM pedidos WHERE id = :id LIMIT 1");
@@ -51,10 +45,6 @@ function obtenerPedidoConItems(PDO $pdo, int $pedidoId): ?array
     return $pedido;
 }
 
-/**
- * Cuenta pedidos agrupados por estado.
- * Devuelve array asociativo: ['pendiente' => 3, 'pagado' => 2, ...]
- */
 function contarPedidosPorEstado(PDO $pdo): array
 {
     $stmt = $pdo->query("
@@ -68,4 +58,15 @@ function contarPedidosPorEstado(PDO $pdo): array
         $resultado[$row['estado']] = (int)$row['total'];
     }
     return $resultado;
+}
+
+function cambiarEstadoPedido(PDO $pdo, int $pedidoId, string $nuevoEstado): void
+{
+    $permitidos = ['pendiente', 'pagado', 'enviado', 'entregado', 'cancelado'];
+    if (!in_array($nuevoEstado, $permitidos, true)) {
+        throw new InvalidArgumentException('Estado inválido: ' . $nuevoEstado);
+    }
+
+    $stmt = $pdo->prepare("UPDATE pedidos SET estado = :estado WHERE id = :id");
+    $stmt->execute(['estado' => $nuevoEstado, 'id' => $pedidoId]);
 }
