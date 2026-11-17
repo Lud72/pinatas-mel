@@ -14,8 +14,11 @@ cd pinatas-mel
 ### 2. Crea la base de datos
 
 Abre: http://localhost/phpmyadmin
+
 Dirigite a la pestaña SQL 
+
 Copia y Pega todo el contenido de SQL/pinatas_mel.sql
+
 Clic en continuar
 
 # Opcion Rapida:
