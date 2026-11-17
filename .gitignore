@@ -23,3 +23,5 @@ config.local.php
 
 # Node (si algún día usas npm)
 node_modules/
+
+Add-Content .gitignore "`n# Uploads de usuarios`nuploads/*`n!uploads/.gitkeep"

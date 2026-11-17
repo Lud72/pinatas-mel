@@ -1,8 +1,11 @@
 <?php
-// TODO: cuando exista BD, guardar el pedido personalizado y la imagen subida.
+require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../conexion.php';
+require_once __DIR__ . '/../../modelos/personalizados.php';
+require_once __DIR__ . '/../../helpers/upload.php';
 
 $mensaje_exito = false;
-$errores = [];
+$errores       = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombre    = trim($_POST['nombre'] ?? '');
@@ -12,24 +15,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tamano    = trim($_POST['tamano'] ?? '');
     $aperturas = $_POST['apertura'] ?? [];
 
-    if ($nombre   === '') $errores[] = 'El nombre es obligatorio.';
-    if ($telefono === '') $errores[] = 'El teléfono es obligatorio.';
+    // Validar
+    if ($nombre    === '') $errores[] = 'El nombre es obligatorio.';
+    if ($telefono  === '') $errores[] = 'El teléfono es obligatorio.';
     if ($personaje === '') $errores[] = 'Describe qué personaje, forma u objeto quieres.';
-    if ($tamano   === '') $errores[] = 'El tamaño es obligatorio.';
+    if ($tamano    === '') $errores[] = 'El tamaño es obligatorio.';
 
-    // Validación opcional de la imagen
-    $imagen_ok = true;
-    if (isset($_FILES['referencia']) && $_FILES['referencia']['error'] === UPLOAD_ERR_OK) {
-        $tipos = ['image/jpeg', 'image/png', 'image/webp'];
-        if (!in_array($_FILES['referencia']['type'], $tipos, true)) {
-            $errores[] = 'La imagen debe ser JPG, PNG o WEBP.';
-            $imagen_ok = false;
+    // Tipo de apertura (checkbox → string)
+    $tipoApertura = '';
+    if (!empty($aperturas)) {
+        // Si hay varias, las unimos
+        $tipoApertura = (count($aperturas) === 2) ? 'ambas' : $aperturas[0];
+    }
+
+    // Subir imagen (opcional)
+    $imagenRef = null;
+    if (empty($errores)) {
+        try {
+            $imagenRef = subirImagenReferencia($_FILES['referencia'] ?? []);
+        } catch (Throwable $e) {
+            $errores[] = $e->getMessage();
         }
     }
 
-    if (empty($errores) && $imagen_ok) {
-        $mensaje_exito = true;
-        // TODO: mover imagen a /uploads y guardar el pedido en BD.
+    // Guardar en BD
+    if (empty($errores)) {
+        try {
+            crearPedidoPersonalizado($pdo, [
+                'cliente_nombre'      => $nombre,
+                'cliente_telefono'    => $telefono,
+                'personaje'           => $personaje,
+                'texto_personalizado' => $texto,
+                'tamano_cm'           => $tamano,
+                'tipo_apertura'       => $tipoApertura,
+                'imagen_referencia'   => $imagenRef,
+            ]);
+            $mensaje_exito = true;
+        } catch (Throwable $e) {
+            $errores[] = 'Error al guardar la solicitud. Intenta de nuevo.';
+        }
     }
 }
 
@@ -58,7 +82,16 @@ include __DIR__ . '/../../plantilla/header-publico.php';
         </div>
     <?php endif; ?>
 
-    <!-- Formulario -->
+    <!-- Éxito -->
+    <?php if ($mensaje_exito): ?>
+        <div class="alert alert-success text-center rounded-4 p-4 mb-4">
+            <h4 class="fw-bold mb-2">¡Solicitud enviada!</h4>
+            <p class="mb-0">Nos pondremos en contacto contigo pronto para confirmar los detalles.</p>
+        </div>
+    <?php endif; ?>
+
+    <!-- Formulario (se oculta tras éxito) -->
+    <?php if (!$mensaje_exito): ?>
     <div class="card border-0 rounded-4 p-4" style="border: 3px solid #A3D8C5 !important;">
         <form id="customization-form" action="personalizado.php" method="POST" enctype="multipart/form-data">
 
@@ -93,6 +126,7 @@ include __DIR__ . '/../../plantilla/header-publico.php';
                 <div class="mb-3">
                     <label for="referencia" class="form-label fw-semibold">Sube una imagen de referencia / foto</label>
                     <input type="file" id="referencia" name="referencia" class="form-control" accept="image/*">
+                    <small class="text-muted">Opcional. JPG, PNG o WEBP, máx 5 MB.</small>
                 </div>
 
                 <div class="mb-3">
@@ -129,18 +163,12 @@ include __DIR__ . '/../../plantilla/header-publico.php';
 
                 <div class="d-flex justify-content-between">
                     <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="nextStep(2)">Regresar</button>
-                    <button type="submit" class="btn btn-primario rounded-pill px-4">Añadir al Carrito</button>
+                    <button type="submit" class="btn btn-primario rounded-pill px-4">Enviar Solicitud</button>
                 </div>
             </div>
 
         </form>
     </div>
-
-    <!-- Éxito -->
-    <?php if ($mensaje_exito): ?>
-        <div class="alert alert-success text-center fs-5 fw-bold rounded-4 p-4 mt-4">
-            Se agregó exitosamente
-        </div>
     <?php endif; ?>
 
 </div>

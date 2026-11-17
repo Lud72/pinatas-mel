@@ -66,3 +66,60 @@ function eliminarImagen(string $nombre): void
         @unlink($ruta);
     }
 }
+
+/**
+ * Sube una imagen de referencia a /uploads/.
+ * Devuelve el nombre del archivo guardado, o null si no se subió.
+ * Lanza RuntimeException si hay error.
+ */
+function subirImagenReferencia(array $archivo): ?string
+{
+    if (!isset($archivo['error']) || $archivo['error'] === UPLOAD_ERR_NO_FILE) {
+        return null;
+    }
+
+    if ($archivo['error'] !== UPLOAD_ERR_OK) {
+        throw new RuntimeException('Error al subir la imagen (código ' . $archivo['error'] . ').');
+    }
+
+    $tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp'];
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime  = finfo_file($finfo, $archivo['tmp_name']);
+    finfo_close($finfo);
+
+    if (!in_array($mime, $tiposPermitidos, true)) {
+        throw new RuntimeException('Formato no permitido. Usa JPG, PNG o WEBP.');
+    }
+
+    if ($archivo['size'] > 5 * 1024 * 1024) {
+        throw new RuntimeException('La imagen supera los 5 MB.');
+    }
+
+    $ext = match ($mime) {
+        'image/jpeg' => 'jpg',
+        'image/png'  => 'png',
+        'image/webp' => 'webp',
+        default      => 'jpg',
+    };
+    $nombre = 'ref_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+
+    $destino = __DIR__ . '/../uploads/' . $nombre;
+
+    if (!move_uploaded_file($archivo['tmp_name'], $destino)) {
+        throw new RuntimeException('No se pudo guardar la imagen.');
+    }
+
+    return $nombre;
+}
+
+/**
+ * Elimina una imagen de /uploads/ si existe.
+ */
+function eliminarImagenReferencia(string $nombre): void
+{
+    if ($nombre === '') return;
+    $ruta = __DIR__ . '/../uploads/' . $nombre;
+    if (is_file($ruta)) {
+        @unlink($ruta);
+    }
+}

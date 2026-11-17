@@ -32,6 +32,7 @@ requiereLogin();
                 <li class="nav-item"><a class="nav-link text-white fw-bold" href="<?= BASE_URL ?>/paginas/admin/catalogo_A.php">Catálogo</a></li>
                 <li class="nav-item"><a class="nav-link text-white fw-bold" href="<?= BASE_URL ?>/paginas/admin/reportes.php">Reportes</a></li>
                 <li class="nav-item"><a class="nav-link text-white fw-bold" href="<?= BASE_URL ?>/paginas/admin/productos_A.php">Productos</a></li>
+                <li class="nav-item"><a class="nav-link text-white fw-bold" href="<?= BASE_URL ?>/paginas/admin/personalizados.php">Personalizados</a></li>
 
                 <li class="nav-item ms-4">
                     <span class="text-white small me-2">
