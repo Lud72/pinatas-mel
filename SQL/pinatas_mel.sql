@@ -90,7 +90,7 @@ CREATE TABLE pedidos_personalizados (
 
 -- DATOS INICIALES DE PRUEBA
 INSERT INTO usuarios_admin (usuario, password_hash, nombre) VALUES
-('admin', '$2y$12$MNfzkTo./JRLsu6H1xiAHuuOWcquFSGQVR9YRV0ZDc4H77UcAOsTi', 'Administrador');
+('admin', '$2y$12$cwXLRw0jYbIG6BnTHVGZ.epRWQEV0aHM4RCUkBLVtei4cFifiMEdm', 'Administrador');
 
 
 INSERT INTO categorias (slug, titulo, icono, banner) VALUES
