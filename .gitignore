@@ -1,27 +1,22 @@
 # Sistema
-.DS_Store
 Thumbs.db
+.DS_Store
 
-# Editores
+# IDE
 .vscode/
 .idea/
-*.sublime-*
 
-# PHP / XAMPP
+# Logs
 *.log
-error_log
-php_errors.log
 
-# Archivos subidos por usuarios (si aplica)
-/uploads/
-/imagenes/temp/
-
-# Configuración local con credenciales
+# Configuración local / secretos
 config.local.php
 .env
-.env.local
 
-# Node (si algún día usas npm)
-node_modules/
+# Dependencias
+/vendor/
+/node_modules/
 
-Add-Content .gitignore "`n# Uploads de usuarios`nuploads/*`n!uploads/.gitkeep"
+# Uploads de usuarios (no versionar archivos subidos)
+/uploads/*
+!/uploads/.gitkeep
