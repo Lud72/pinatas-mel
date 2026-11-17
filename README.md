@@ -8,6 +8,7 @@ Abre una terminal en la carpeta `htdocs` de XAMPP:
 
 cd C:\xampp\htdocs
 git clone https://github.com/Lud72/pinatas-mel/tree/version-pre
+
 cd pinatas-mel
 
 ### 2. Crea la base de datos
