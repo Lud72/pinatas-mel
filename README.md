@@ -7,7 +7,8 @@
 Abre una terminal en la carpeta `htdocs` de XAMPP:
 
 cd C:\xampp\htdocs
-git clone https://github.com/Lud72/pinatas-mel/tree/version-pre
+
+git clone --branch version-pre https://github.com/Lud72/pinatas-mel.git
 
 cd pinatas-mel
 
